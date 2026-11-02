@@ -271,20 +271,47 @@ export function DiagnosticModal() {
     {
       const t0 = Date.now();
       try {
-        const res = await fetch('https://text.pollinations.ai/openai', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'openai',
-            messages: [{ role: 'user', content: 'Responde unicamente con la palabra OK' }],
-            max_tokens: 15,
-          }),
-          signal: AbortSignal.timeout(12000),
-        });
+        let isSuccess = false;
+        let lastStatus = 0;
+
+        // Intento 1: Endpoint de texto sin key
+        try {
+          const res = await fetch('https://text.pollinations.ai/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messages: [{ role: 'user', content: 'Di OK' }],
+              model: 'openai',
+            }),
+            signal: AbortSignal.timeout(9000),
+          });
+          lastStatus = res.status;
+          if (res.ok) isSuccess = true;
+        } catch {}
+
+        // Intento 2: Gateway unificado gen.pollinations.ai
+        if (!isSuccess) {
+          try {
+            const res2 = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'openai',
+                messages: [{ role: 'user', content: 'Di OK' }],
+              }),
+              signal: AbortSignal.timeout(9000),
+            });
+            lastStatus = res2.status;
+            if (res2.ok) isSuccess = true;
+          } catch {}
+        }
+
         const latency = Date.now() - t0;
-        if (res.ok) {
+        if (isSuccess) {
           updateServiceState(1, {
             status: 'online',
             latencyMs: latency,
@@ -295,8 +322,8 @@ export function DiagnosticModal() {
           updateServiceState(1, {
             status: 'error',
             latencyMs: latency,
-            message: `Servidor congestionado (${res.status}).`,
-            details: 'Pollinations temporalmente ocupado.',
+            message: lastStatus ? `Servidor con respuesta (${lastStatus}).` : 'Tiempo de espera agotado en Pollinations.',
+            details: 'Pollinations ocupado o en mantenimiento temporal.',
           });
         }
       } catch (err: unknown) {

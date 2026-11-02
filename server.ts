@@ -311,6 +311,84 @@ async function callOpenAICompatibleProvider({
 }
 
 /**
+ * Conexión resiliente a Pollinations AI (100% gratuita, sin API Key requerida)
+ * Compatible con https://text.pollinations.ai/ y con el gateway https://gen.pollinations.ai/v1/chat/completions
+ */
+async function callPollinationsAI({
+  systemInstruction,
+  userContent,
+  timeoutMs = 14000,
+}: {
+  systemInstruction: string;
+  userContent: string;
+  timeoutMs?: number;
+}): Promise<string | null> {
+  // 1. Intento primario: Endpoint directo de texto con jsonMode
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: userContent },
+        ],
+        model: 'openai',
+        jsonMode: true,
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+    if (res.ok) {
+      const text = await res.text();
+      if (text && text.trim().length > 0) {
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed.choices?.[0]?.message?.content) {
+            return parsed.choices[0].message.content;
+          }
+        } catch {
+          // Es texto directo
+        }
+        return text;
+      }
+    }
+  } catch (err) {
+    console.log('[Pollinations] Intento con https://text.pollinations.ai/ no disponible:', err);
+  }
+
+  // 2. Intento secundario: Gateway gen.pollinations.ai
+  try {
+    const res = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'openai',
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: userContent },
+        ],
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const content = data.choices?.[0]?.message?.content;
+      if (content) return content;
+    }
+  } catch (err) {
+    console.log('[Pollinations] Intento con gen.pollinations.ai no disponible:', err);
+  }
+
+  return null;
+}
+
+/**
  * Endpoint de revisión escolar
  * Procesa texto e imágenes de tareas de forma 100% segura en el servidor.
  */
@@ -612,9 +690,7 @@ Responde SIEMPRE en español. Tu respuesta debe ser un objeto JSON válido con l
 
     // 2. NIVEL 2: Pollinations AI (100% Gratis, SIN API Key ni registro previo - Respaldo Inmediato)
     if (!responseText) {
-      const pollContent = await callOpenAICompatibleProvider({
-        endpoint: 'https://text.pollinations.ai/openai',
-        model: 'openai',
+      const pollContent = await callPollinationsAI({
         systemInstruction,
         userContent,
         timeoutMs: 14000,
