@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-cream: #FAF7EE;
+    --accent-yellow: #FFE66D;
+    --accent-mint: #A8E6CF;
+    --accent-coral: #FF8B94;
+    --accent-sky: #A0E7E5;
+    --ink-black: #1A1A1A;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-cream);
+    color: var(--ink-black);
+    background-image: 
+      radial-gradient(#1A1A1A 0.75px, transparent 0.75px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'Fredoka', 'Plus Jakarta Sans', cursive, sans-serif;
+  }
+
+  .font-hand {
+    font-family: 'Caveat', cursive;
+  }
+}
+
+/* =========================================================================
+   ESTILOS NEUBRUTALISMO LÚDICO / TUTOR-IA
+   Bordes negros sólidos de 2.5px y sombras duras en bloque sin desenfoque.
+   ========================================================================= */
+
+.neo-card {
+  border: 2.5px solid #1A1A1A;
+  box-shadow: 4px 4px 0px #1A1A1A;
+  background-color: #FFFFFF;
+  transition: all 0.15s ease-out;
+}
+
+.neo-card-lg {
+  border: 3px solid #1A1A1A;
+  box-shadow: 6px 6px 0px #1A1A1A;
+  background-color: #FFFFFF;
+}
+
+.neo-card-sm {
+  border: 2px solid #1A1A1A;
+  box-shadow: 3px 3px 0px #1A1A1A;
+}
+
+/* Efecto táctil real de pulsación: el elemento se desplaza 4px y la sombra desaparece */
+.neo-btn {
+  border: 2.5px solid #1A1A1A;
+  box-shadow: 4px 4px 0px #1A1A1A;
+  font-weight: 700;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, background-color 0.15s ease;
+  user-select: none;
+}
+
+.neo-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #1A1A1A;
+}
+
+.neo-btn:active:not(:disabled),
+.neo-btn-active {
+  transform: translate(4px, 4px) !important;
+  box-shadow: 0px 0px 0px #1A1A1A !important;
+}
+
+.neo-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(40%);
+}
+
+/* Efecto táctil para casillas de selección / tags interactivos */
+.neo-tag-btn {
+  border: 2.5px solid #1A1A1A;
+  box-shadow: 3px 3px 0px #1A1A1A;
+  font-weight: 700;
+  transition: all 0.1s ease-out;
+}
+
+.neo-tag-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #1A1A1A;
+}
+
+.neo-tag-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0px #1A1A1A;
+}
+
+/* Cinta adhesiva washi tape decorativa */
+.washi-tape {
+  position: absolute;
+  height: 18px;
+  background-color: rgba(255, 230, 109, 0.85);
+  border-left: 2px dashed rgba(26, 26, 26, 0.4);
+  border-right: 2px dashed rgba(26, 26, 26, 0.4);
+  transform: rotate(-3deg);
+  box-shadow: 1px 1px 0px rgba(26, 26, 26, 0.15);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.washi-tape-coral {
+  background-color: rgba(255, 139, 148, 0.85);
+}
+
+.washi-tape-mint {
+  background-color: rgba(168, 230, 207, 0.85);
+}
+
+/* Efecto de líneas de cuaderno escolar */
+.cuaderno-lines {
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 27px,
+    #E8E3D3 27px,
+    #E8E3D3 28px
+  );
+  line-height: 28px;
+}
+
+/* Animación sutil de rotación para stickers */
+@keyframes doodle-wiggle {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1.5deg); }
+}
+
+.animate-doodle {
+  animation: doodle-wiggle 3s ease-in-out infinite;
+}
+
+/* Flotación suave para la mascota escolar */
+@keyframes mascot-float-anim {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(1.5deg); }
+}
+
+.mascot-float {
+  animation: mascot-float-anim 2.8s ease-in-out infinite;
+}
+
+/* Caída festiva de estrellas al completar una tarea */
+@keyframes star-burst-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-10px) scale(0.6) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(28px) scale(1.15) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(68px) scale(0.8) rotate(340deg);
+  }
+}
+
+.star-burst-particle {
+  animation-name: star-burst-fall;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: forwards;
+}
+
+/* =========================================================================
+   ESTILOS PARA IMPRESIÓN EN FORMATO CUADERNO ESCOLAR (@media print)
+   ========================================================================= */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    background-image: none !important;
+    color: #1A1A1A !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ocultar elementos interactivos de pantalla, modales y barras */
+  nav,
+  header,
+  footer,
+  button,
+  .neo-btn,
+  .washi-tape,
+  .no-print,
+  dialog,
+  [role="dialog"],
+  .fixed,
+  .sticky,
+  #cuaderno-print-iframe {
+    display: none !important;
+  }
+
+  /* Tarjetas optimizadas para tinta y hojas de cuaderno */
+  .neo-card,
+  .neo-card-lg,
+  .neo-card-sm {
+    box-shadow: none !important;
+    border: 1.5px solid #1A1A1A !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 14px !important;
+    background: #FFFFFF !important;
+  }
+
+  .print-header {
+    display: block !important;
+    border-bottom: 2px solid #1A1A1A;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+  }
+}

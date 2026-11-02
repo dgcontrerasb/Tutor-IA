@@ -1,0 +1,27 @@
+# ============================================================================
+# TUTOR-IA - ARCHIVOS EXCLUIDOS DE VERCEL (.vercelignore)
+# ============================================================================
+
+# Directorios internos y control de versiones
+.git/
+.github/
+.vscode/
+.idea/
+
+# Dependencias y compilaciones locales (Vercel las genera limpias en la nube)
+node_modules/
+dist/
+build/
+coverage/
+
+# Archivos de entorno locales y configuraciones privadas locales
+.env
+.env.local
+.env.*.local
+firebase-applet-config.json
+firebase-blueprint.json
+
+# Logs y archivos temporales del sistema
+*.log
+.DS_Store
+Thumbs.db

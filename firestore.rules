@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email.lower() == 'dgcontrerasb@gmail.com' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // Colección de usuarios para administración y perfil
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+
+      // Al crear un usuario: un estudiante común no puede asignarse rol admin ni suscripción activa
+      allow create: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.role == 'student' &&
+        request.resource.data.isSubscriptionActive == false
+      );
+
+      // Al actualizar un usuario: el dueño solo puede actualizar si no altera roles ni estados de suscripción
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.isSubscriptionActive == resource.data.isSubscriptionActive &&
+        request.resource.data.subscriptionExpiresAt == resource.data.subscriptionExpiresAt &&
+        request.resource.data.maxDailyUsages == resource.data.maxDailyUsages &&
+        request.resource.data.maxUsages == resource.data.maxUsages
+      );
+
+      allow delete: if isAdmin();
+    }
+  }
+}

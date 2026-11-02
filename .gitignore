@@ -1,0 +1,150 @@
+# ============================================================================
+# TUTOR-IA - ARCHIVOS EXCLUIDOS DE GITHUB (.gitignore)
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# 1. DEPENDENCIAS Y GESTORES DE PAQUETES
+# ----------------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnpm-store/
+
+# ----------------------------------------------------------------------------
+# 2. VARIABLES DE ENTORNO Y SECRETOS (CRÍTICO: NUNCA SUBIR A REPOSITORIOS)
+# ----------------------------------------------------------------------------
+.env
+.env.*
+*.env
+!.env.example
+!.env.template
+
+# ----------------------------------------------------------------------------
+# 3. LLAVES, CERTIFICADOS Y CUENTAS DE SERVICIO (FIREBASE / CLOUD / SSL)
+# ----------------------------------------------------------------------------
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.keystore
+id_rsa*
+id_ed25519*
+credentials.json
+client_secret*.json
+serviceAccountKey*.json
+*-adminsdk-*.json
+firebase-applet-config.json
+firebase-blueprint.json
+google-services.json
+GoogleService-Info.plist
+.runtimeconfig.json
+
+# ----------------------------------------------------------------------------
+# 4. COMPILACIÓN, BUILDS Y DISTRIBUCIÓN
+# ----------------------------------------------------------------------------
+dist/
+dist-ssr/
+build/
+out/
+server.js
+*.tsbuildinfo
+.turbo/
+.next/
+.nuxt/
+
+# ----------------------------------------------------------------------------
+# 5. PLATAFORMAS EN LA NUBE Y ENTORNOS LOCALES
+# ----------------------------------------------------------------------------
+.vercel/
+.firebase/
+
+# ----------------------------------------------------------------------------
+# 6. LOGS, DEPURACIÓN Y ARCHIVOS TEMPORALES
+# ----------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+.cache/
+.temp/
+.tmp/
+temp/
+tmp/
+*.pid
+*.seed
+*.pid.lock
+
+# ----------------------------------------------------------------------------
+# 7. PRUEBAS Y REPORTES DE COBERTURA
+# ----------------------------------------------------------------------------
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+cypress/videos/
+cypress/screenshots/
+
+# ----------------------------------------------------------------------------
+# 8. BASES DE DATOS LOCALES, DUMPS Y RESPALDOS
+# ----------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.dump
+*.bak
+*.backup
+
+# ----------------------------------------------------------------------------
+# 9. EDITORES, IDES Y ASISTENTES
+# ----------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-workspace
+*.sublime-project
+.cursor/
+.claude/
+.gemini/
+
+# ----------------------------------------------------------------------------
+# 10. ARCHIVOS DEL SISTEMA OPERATIVO
+# ----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ----------------------------------------------------------------------------
+# 11. ARCHIVOS COMPRIMIDOS
+# ----------------------------------------------------------------------------
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
