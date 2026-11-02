@@ -125,8 +125,8 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
   }, [user]);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#FAF7EE]/95 backdrop-blur-md border-b-[2.5px] border-[#1A1A1A] shadow-[0_3px_0px_#1A1A1A]">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b-[2.5px] border-[#181829] shadow-[0_3px_0px_rgba(24,24,41,0.08)]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Lado Izquierdo: Logotipo limpio y completo */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
@@ -362,46 +362,37 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
   return (
     <div
-      className={`relative rounded-2xl border-[3px] border-[#1A1A1A] shadow-[6px_6px_0px_#1A1A1A] p-4 sm:p-6 overflow-hidden mb-5 text-center transition-colors duration-300 ${
-        isPrimaria ? 'bg-white' : 'bg-[#F4FBFC]'
+      className={`relative rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 sm:p-5 overflow-hidden transition-all duration-300 ${
+        isPrimaria ? 'bg-white' : 'bg-gradient-to-br from-white to-[#F0FDFA]'
       }`}
     >
-      {/* Stickers decorativos washi tape */}
-      <div className="washi-tape top-2 left-6 w-24 sm:w-28"></div>
-      <div className="washi-tape washi-tape-coral top-3 right-8 w-20 sm:w-24 transform rotate-2"></div>
-
-      <div className="flex flex-col items-center justify-center max-w-2xl mx-auto space-y-3">
+      <div className="flex flex-col items-center justify-center max-w-xl mx-auto space-y-2.5">
         {/* Insignia dinámica según Primaria vs Bachillerato */}
         <div
-          className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] text-[11px] sm:text-xs font-black uppercase tracking-wider transition-colors duration-200 ${
-            isPrimaria ? 'bg-[#FFE66D] text-[#1A1A1A]' : 'bg-[#A0E7E5] text-[#1A1A1A]'
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-[#181829] shadow-[2px_2px_0px_#181829] text-[11px] font-black uppercase tracking-wider transition-colors duration-200 ${
+            isPrimaria ? 'bg-[#FFE66D] text-[#181829]' : 'bg-[#38BDF8] text-[#181829]'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-900" />
+          <Sparkles className="w-3.5 h-3.5 text-[#181829]" />
           <span>
             {isPrimaria
-              ? '🌟 Modo Explorador Primaria · Aprendizaje Divertido'
-              : '🚀 Modo Reto Bachillerato · Análisis y Exámenes'}
+              ? '🌟 Modo Explorador · Primaria'
+              : '🚀 Modo Reto · Bachillerato'}
           </span>
         </div>
 
-        {/* Título principal limpio sin etiquetas repetidas */}
-        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-[#1A1A1A]">
-          Tutor-IA
-        </h1>
-
         {/* Único Interruptor Deslizante Protagonista (Primaria <-> Bachillerato) */}
         {onGradeLevelChange && (
-          <div className="pt-0.5 flex flex-col items-center gap-1.5">
+          <div className="pt-0.5 flex flex-col items-center gap-1 w-full">
             <GradeLevelSwitch
               gradeLevel={gradeLevel}
               onChange={onGradeLevelChange}
               size="large"
             />
-            <span className="text-[11px] sm:text-xs font-bold text-[#1A1A1A]/70">
+            <span className="text-[11px] font-bold text-[#181829]/65 text-center">
               {isPrimaria
-                ? 'Explicaciones sencillas con cuentos, juegos y ejemplos fáciles'
-                : 'Desarrollo de fórmulas, argumentación, química, física y talleres'}
+                ? 'Explicaciones con cuentos y ejemplos fáciles'
+                : 'Desarrollo de fórmulas, talleres y preparación de exámenes'}
             </span>
           </div>
         )}

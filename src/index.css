@@ -2,12 +2,13 @@
 
 @layer base {
   :root {
-    --bg-cream: #FAF7EE;
+    --bg-cream: #F3F5FA;
     --accent-yellow: #FFE66D;
-    --accent-mint: #A8E6CF;
-    --accent-coral: #FF8B94;
-    --accent-sky: #A0E7E5;
-    --ink-black: #1A1A1A;
+    --accent-purple: #6366F1;
+    --accent-mint: #34D399;
+    --accent-coral: #FB7185;
+    --accent-sky: #38BDF8;
+    --ink-black: #181829;
   }
 
   body {
@@ -15,8 +16,8 @@
     background-color: var(--bg-cream);
     color: var(--ink-black);
     background-image: 
-      radial-gradient(#1A1A1A 0.75px, transparent 0.75px);
-    background-size: 24px 24px;
+      radial-gradient(rgba(99, 102, 241, 0.15) 1px, transparent 1px);
+    background-size: 20px 20px;
     background-position: 0 0;
   }
 
