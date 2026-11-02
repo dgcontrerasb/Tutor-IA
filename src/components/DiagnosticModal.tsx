@@ -274,34 +274,26 @@ export function DiagnosticModal() {
         let isSuccess = false;
         let lastStatus = 0;
 
-        // Intento 1: Endpoint de texto sin key
+        // Intento 1: Ping rápido GET a https://text.pollinations.ai (sin CORS preflight)
         try {
-          const res = await fetch('https://text.pollinations.ai/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              messages: [{ role: 'user', content: 'Di OK' }],
-              model: 'openai',
-            }),
+          const res = await fetch('https://text.pollinations.ai/ping?model=openai', {
             signal: AbortSignal.timeout(9000),
           });
           lastStatus = res.status;
           if (res.ok) isSuccess = true;
         } catch {}
 
-        // Intento 2: Gateway unificado gen.pollinations.ai
+        // Intento 2: POST directo a https://text.pollinations.ai (sin key)
         if (!isSuccess) {
           try {
-            const res2 = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+            const res2 = await fetch('https://text.pollinations.ai', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                model: 'openai',
                 messages: [{ role: 'user', content: 'Di OK' }],
+                model: 'openai',
               }),
               signal: AbortSignal.timeout(9000),
             });

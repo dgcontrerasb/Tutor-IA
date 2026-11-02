@@ -204,7 +204,7 @@ async function callOpenAICompatibleProvider({
 
 /**
  * Conexión resiliente a Pollinations AI en navegador (100% gratuita, sin API Key requerida, CORS abierto)
- * Compatible con https://text.pollinations.ai/ y con el gateway https://gen.pollinations.ai/v1/chat/completions
+ * Usa https://text.pollinations.ai (sin key) y opcionalmente el gateway https://gen.pollinations.ai si se configura VITE_POLLINATIONS_API_KEY
  */
 async function callPollinationsAI({
   systemInstruction,
@@ -215,9 +215,11 @@ async function callPollinationsAI({
   userContent: string;
   timeoutMs?: number;
 }): Promise<string | null> {
-  // 1. Intento primario: Endpoint directo de texto con jsonMode
+  const pollApiKey = import.meta.env.VITE_POLLINATIONS_API_KEY?.trim();
+
+  // 1. Intento primario gratuito sin key: Endpoint directo de texto con jsonMode
   try {
-    const res = await fetch('https://text.pollinations.ai/', {
+    const res = await fetch('https://text.pollinations.ai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -248,33 +250,36 @@ async function callPollinationsAI({
       }
     }
   } catch (err) {
-    console.warn('[Pollinations] Intento con https://text.pollinations.ai/ no disponible:', err);
+    console.warn('[Pollinations] Intento con https://text.pollinations.ai no disponible:', err);
   }
 
-  // 2. Intento secundario: Gateway gen.pollinations.ai
-  try {
-    const res = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai',
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: userContent },
-        ],
-      }),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
+  // 2. Intento secundario: Gateway gen.pollinations.ai (solo si hay key configurada)
+  if (pollApiKey) {
+    try {
+      const res = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${pollApiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'openai',
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: userContent },
+          ],
+        }),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
 
-    if (res.ok) {
-      const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = data.choices?.[0]?.message?.content;
-      if (content) return content;
+      if (res.ok) {
+        const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return content;
+      }
+    } catch (err) {
+      console.warn('[Pollinations] Intento con gen.pollinations.ai no disponible:', err);
     }
-  } catch (err) {
-    console.warn('[Pollinations] Intento con gen.pollinations.ai no disponible:', err);
   }
 
   return null;
