@@ -40,7 +40,7 @@ import {
 import { StickyNavbar, HeroBanner } from './components/Header';
 import { UsageCounter } from './components/UsageCounter';
 import { InputZone } from './components/InputZone';
-import { SubjectSelector } from './components/SubjectSelector';
+import { SubjectsSidebar } from './components/SubjectsSidebar';
 import { TaskSelector } from './components/TaskSelector';
 import { ResponseDepthSelector } from './components/ResponseDepthSelector';
 import { LoadingState } from './components/LoadingState';
@@ -127,6 +127,8 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<HomeworkReviewResult | null>(null);
   const [isFormCollapsed, setIsFormCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isCollapsedDesktop, setIsCollapsedDesktop] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -512,116 +514,124 @@ export default function App() {
           <DiagnosticModal />
         )}
 
-        {/* Formulario Principal de Tareas */}
-        <main className="space-y-6">
-          <div className="no-print">
-            {/* Colapso Inteligente de Pasos 1, 2 y 3 al recibir el resultado */}
-            {isFormCollapsed && result ? (
-              <div className="max-w-5xl mx-auto mb-6">
-                <div className="h-[48px] max-h-[50px] px-3 py-1.5 bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[3px_3px_0px_#181829] flex items-center justify-between gap-2 transition-all">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span
-                      className="px-2 py-0.5 rounded-lg border-[1.5px] border-[#181829] text-xs font-black text-[#181829] shrink-0 flex items-center gap-1 shadow-[1.5px_1.5px_0px_#181829]"
-                      style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
-                    >
-                      <span>{getSubjectById(selectedSubjectId).icon}</span>
-                      <span>{getSubjectById(selectedSubjectId).shortName}</span>
-                    </span>
-                    <span className="text-xs font-bold text-[#181829]/80 truncate">
-                      {textInput.trim()
-                        ? textInput.trim().length > 40
-                          ? `${textInput.trim().slice(0, 40)}...`
-                          : textInput.trim()
-                        : imageFile
-                        ? `📸 ${imageFile.name.slice(0, 30)}`
-                        : 'Consulta escolar analizada'}
-                    </span>
-                  </div>
+        {/* Contenedor Principal: Sidebar Izquierda + Área Central */}
+        <div className="flex flex-col lg:flex-row gap-5 items-start">
+          {/* Panel Lateral Izquierdo de Materias Escolares */}
+          <SubjectsSidebar
+            selectedSubjectId={selectedSubjectId}
+            onSelectSubject={handleSelectSubject}
+            gradeLevel={gradeLevel}
+            isOpenMobile={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
+            isCollapsedDesktop={isCollapsedDesktop}
+            onToggleCollapseDesktop={() => setIsCollapsedDesktop((prev) => !prev)}
+            disabled={isLoading || isExhausted}
+          />
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setIsFormCollapsed(false)}
-                      className="neo-btn px-2.5 py-1 bg-[#FFE66D] hover:bg-[#fedd48] text-[#181829] text-[11px] sm:text-xs font-black rounded-xl border-[1.5px] border-[#181829] shadow-[2px_2px_0px_#181829] cursor-pointer flex items-center gap-1"
-                    >
-                      <span>✏️ Editar consulta</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleReset}
-                      className="neo-btn px-2 py-1 bg-white hover:bg-gray-100 text-[#181829] text-[11px] font-black rounded-xl border-[1.5px] border-[#181829] shadow-[2px_2px_0px_#181829] cursor-pointer hidden xs:inline-flex items-center gap-1"
-                      title="Empezar una nueva tarea desde cero"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Nueva tarea</span>
-                    </button>
-                  </div>
+          {/* Área Central de Trabajo */}
+          <main className="flex-1 min-w-0 w-full space-y-5">
+            {/* Acceso Rápido a Materias en Móvil (Solo pantallas pequeñas) */}
+            <div className="lg:hidden flex items-center justify-between p-3 bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[3px_3px_0px_#181829]">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className="w-9 h-9 rounded-xl border-2 border-[#181829] flex items-center justify-center text-base shrink-0 shadow-[1.5px_1.5px_0px_#181829]"
+                  style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
+                >
+                  {getSubjectById(selectedSubjectId).icon}
+                </span>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-black uppercase text-[#181829]/60 block leading-none">
+                    Materia escolar activa
+                  </span>
+                  <span className="text-xs sm:text-sm font-black text-[#181829] truncate block">
+                    {getSubjectById(selectedSubjectId).name}
+                  </span>
                 </div>
               </div>
-            ) : (
-              <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-6 lg:space-y-0">
-                {/* Columna Izquierda: Panel de Control Escolar (5 columnas en desktop) */}
-                <div className="lg:col-span-5 space-y-5">
-                  {/* Banner Hero escolar con Mascota Escolar e interruptor Primaria <-> Bachillerato */}
-                  <HeroBanner
-                    gradeLevel={gradeLevel}
-                    onGradeLevelChange={setGradeLevel}
-                    selectedSubjectId={selectedSubjectId}
-                    isLoading={isLoading}
-                  />
 
-                  {/* Contador y control de usos de prueba */}
-                  <UsageCounter
-                    usage={usage}
-                    onOpenPayment={() => setIsPaymentModalOpen(true)}
-                  />
+              <button
+                type="button"
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="neo-btn px-3 py-1.5 bg-[#FDE047] hover:bg-[#fedd48] text-[#181829] text-xs font-black rounded-xl border-2 border-[#181829] shadow-[2px_2px_0px_#181829] flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <span>Cambiar</span>
+                <span className="text-xs">▾</span>
+              </button>
+            </div>
 
-                  {/* Selector Maestro de Materias Escolares (Paso 1) */}
-                  <div className="bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 transition-all hover:shadow-[5px_5px_0px_#181829]">
-                    <SubjectSelector
-                      selectedSubjectId={selectedSubjectId}
-                      onSelectSubject={handleSelectSubject}
-                      gradeLevel={gradeLevel}
-                      disabled={isLoading || isExhausted}
-                    />
-                  </div>
+            {/* Banner Hero escolar con Mascota Escolar e interruptor Primaria <-> Bachillerato */}
+            <HeroBanner
+              gradeLevel={gradeLevel}
+              onGradeLevelChange={setGradeLevel}
+              selectedSubjectId={selectedSubjectId}
+              isLoading={isLoading}
+            />
 
-                  {/* Selector de Tareas Interactivo adaptado por materia (Paso 2) */}
-                  <div className="bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 transition-all hover:shadow-[5px_5px_0px_#181829]">
-                    <TaskSelector
-                      selectedTasks={selectedTasks}
-                      onToggleTask={handleToggleTask}
-                      subjectId={selectedSubjectId}
-                      disabled={isLoading || isExhausted}
-                    />
-                  </div>
+            {/* Contador y control de usos de prueba */}
+            <UsageCounter
+              usage={usage}
+              onOpenPayment={() => setIsPaymentModalOpen(true)}
+            />
 
-                  {/* Selector de Profundidad de Respuesta */}
-                  <div className="bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 transition-all hover:shadow-[5px_5px_0px_#181829]">
-                    <ResponseDepthSelector
-                      responseDepth={responseDepth}
-                      onChange={(depth) => setResponseDepth(depth)}
-                      gradeLevel={gradeLevel}
-                      disabled={isLoading || isExhausted}
-                    />
+            <div className="no-print">
+              {/* Colapso Inteligente al recibir el resultado */}
+              {isFormCollapsed && result ? (
+                <div className="mb-4">
+                  <div className="h-[48px] max-h-[50px] px-3 py-1.5 bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[3px_3px_0px_#181829] flex items-center justify-between gap-2 transition-all">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span
+                        className="px-2 py-0.5 rounded-lg border-[1.5px] border-[#181829] text-xs font-black text-[#181829] shrink-0 flex items-center gap-1 shadow-[1.5px_1.5px_0px_#181829]"
+                        style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
+                      >
+                        <span>{getSubjectById(selectedSubjectId).icon}</span>
+                        <span>{getSubjectById(selectedSubjectId).shortName}</span>
+                      </span>
+                      <span className="text-xs font-bold text-[#181829]/80 truncate">
+                        {textInput.trim()
+                          ? textInput.trim().length > 40
+                            ? `${textInput.trim().slice(0, 40)}...`
+                            : textInput.trim()
+                          : imageFile
+                          ? `📸 ${imageFile.name.slice(0, 30)}`
+                          : 'Consulta escolar analizada'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setIsFormCollapsed(false)}
+                        className="neo-btn px-2.5 py-1 bg-[#FFE66D] hover:bg-[#fedd48] text-[#181829] text-[11px] sm:text-xs font-black rounded-xl border-[1.5px] border-[#181829] shadow-[2px_2px_0px_#181829] cursor-pointer flex items-center gap-1"
+                      >
+                        <span>✏️ Editar consulta</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleReset}
+                        className="neo-btn px-2 py-1 bg-white hover:bg-gray-100 text-[#181829] text-[11px] font-black rounded-xl border-[1.5px] border-[#181829] shadow-[2px_2px_0px_#181829] cursor-pointer hidden xs:inline-flex items-center gap-1"
+                        title="Empezar una nueva tarea desde cero"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        <span>Nueva tarea</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Columna Derecha: Entrada de Tareas & Acción Rápida (7 columnas en desktop) */}
-                <div className="lg:col-span-7 space-y-5 lg:sticky lg:top-20">
-                  {/* Zona de Entrada Dual (Paso 3: Texto + Foto de cuaderno) */}
+              ) : (
+                <div className="space-y-5">
+                  {/* Zona de Entrada Dual (Texto + Foto de cuaderno) */}
                   <div className="bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 sm:p-5 transition-all hover:shadow-[5px_5px_0px_#181829]">
                     <div className="flex items-center justify-between mb-3 pb-2 border-b-2 border-dashed border-[#181829]/15">
                       <div className="flex items-center gap-2">
                         <span className="px-2.5 py-0.5 rounded-lg bg-[#FDE047] border-2 border-[#181829] text-xs font-black shadow-[1.5px_1.5px_0px_#181829]">
-                          PASO 3
+                          PASO 1
                         </span>
                         <h3 className="text-sm font-black text-[#181829]">
                           Tu Tarea o Pregunta Escolar
                         </h3>
                       </div>
                       <span className="text-[11px] font-bold text-[#181829]/60 hidden sm:inline">
-                        Texto o foto de tu cuaderno
+                        Texto o foto de cuaderno
                       </span>
                     </div>
 
@@ -640,6 +650,29 @@ export default function App() {
                       disabled={isLoading || isExhausted}
                       isMediaRelevant={isSubjectVisualOrFormula(selectedSubjectId)}
                     />
+                  </div>
+
+                  {/* Fila Dual: Ayuda Pedagógica + Profundidad */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Selector de Tareas Adaptado por Materia */}
+                    <div className="bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 transition-all hover:shadow-[5px_5px_0px_#181829]">
+                      <TaskSelector
+                        selectedTasks={selectedTasks}
+                        onToggleTask={handleToggleTask}
+                        subjectId={selectedSubjectId}
+                        disabled={isLoading || isExhausted}
+                      />
+                    </div>
+
+                    {/* Selector de Profundidad de Respuesta */}
+                    <div className="bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 transition-all hover:shadow-[5px_5px_0px_#181829]">
+                      <ResponseDepthSelector
+                        responseDepth={responseDepth}
+                        onChange={(depth) => setResponseDepth(depth)}
+                        gradeLevel={gradeLevel}
+                        disabled={isLoading || isExhausted}
+                      />
+                    </div>
                   </div>
 
                   {/* Mensaje de Error si ocurre alguno */}
@@ -731,52 +764,52 @@ export default function App() {
                   {/* Estado de Carga */}
                   {isLoading && <LoadingState />}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Estado de Carga con Mensajes Rotativos */}
-          {isLoading && <LoadingState />}
-
-          {/* Contenedor de Resultados Escolares */}
-          {result && (
-            <div ref={resultsRef} className="pt-2 space-y-6">
-              {/* Si la consulta fue bloqueada por no corresponder al contexto escolar */}
-              {result.isSchoolRelated === false ? (
-                <SchoolGuardrailCard
-                  rejectionReason={result.rejectionReason}
-                  onReset={() => {
-                    setResult(null);
-                    setIsFormCollapsed(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                />
-              ) : (
-                <>
-                  {/* Celebración animada con lluvia de estrellas al completar la tarea */}
-                  <CelebrationBurst
-                    triggerKey={result.timestamp}
-                    gradeLevel={gradeLevel}
-                    subjectName={getSubjectById(selectedSubjectId).shortName}
-                  />
-
-                  {/* Componente modular de Resultados con pestañas anti-fatiga de scroll */}
-                  <ResultsDisplay
-                    result={result}
-                    reloadedNotice={reloadedNotice}
-                    onClearReloadedNotice={() => setReloadedNotice(null)}
-                    currentUser={currentUser}
-                    selectedSubjectId={selectedSubjectId}
-                    gradeLevel={gradeLevel}
-                    copiedSuccess={copiedSuccess}
-                    onCopyNotes={handleCopyNotes}
-                    onPrint={handlePrint}
-                  />
-                </>
               )}
             </div>
-          )}
-        </main>
+
+            {/* Estado de Carga con Mensajes Rotativos */}
+            {isLoading && <LoadingState />}
+
+            {/* Contenedor de Resultados Escolares */}
+            {result && (
+              <div ref={resultsRef} className="pt-2 space-y-6">
+                {/* Si la consulta fue bloqueada por no corresponder al contexto escolar */}
+                {result.isSchoolRelated === false ? (
+                  <SchoolGuardrailCard
+                    rejectionReason={result.rejectionReason}
+                    onReset={() => {
+                      setResult(null);
+                      setIsFormCollapsed(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  />
+                ) : (
+                  <>
+                    {/* Celebración animada con lluvia de estrellas al completar la tarea */}
+                    <CelebrationBurst
+                      triggerKey={result.timestamp}
+                      gradeLevel={gradeLevel}
+                      subjectName={getSubjectById(selectedSubjectId).shortName}
+                    />
+
+                    {/* Componente modular de Resultados con pestañas anti-fatiga de scroll */}
+                    <ResultsDisplay
+                      result={result}
+                      reloadedNotice={reloadedNotice}
+                      onClearReloadedNotice={() => setReloadedNotice(null)}
+                      currentUser={currentUser}
+                      selectedSubjectId={selectedSubjectId}
+                      gradeLevel={gradeLevel}
+                      copiedSuccess={copiedSuccess}
+                      onCopyNotes={handleCopyNotes}
+                      onPrint={handlePrint}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
 
         {/* Pie de página con blindaje legal, privacidad y soporte */}
         <footer className="mt-16 pt-6 border-t-2 border-dashed border-[#1A1A1A]/30 text-center text-xs font-bold text-[#1A1A1A]/80 space-y-3">
