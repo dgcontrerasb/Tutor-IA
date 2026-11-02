@@ -287,6 +287,18 @@ export async function logout(): Promise<void> {
 }
 
 /**
+ * Función auxiliar para proteger operaciones asíncronas con timeout
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 2500): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Operación de Firestore excedió los ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+}
+
+/**
  * Sincroniza o crea el perfil del usuario en Firestore.
  * Utiliza caché local inteligente para NO gastar lecturas ni escrituras en recargas.
  * @param user Usuario de Firebase Auth
@@ -309,7 +321,7 @@ export async function syncUserProfile(
   const today = getTodayDateString();
 
   try {
-    const docSnap = await getDoc(userRef);
+    const docSnap = await withTimeout(getDoc(userRef), 2500);
 
     if (docSnap.exists()) {
       const existing = docSnap.data() as UserProfile;
@@ -317,13 +329,16 @@ export async function syncUserProfile(
       // Si el usuario es el correo del admin, asegurar acceso ilimitado
       if (isAdmin) {
         if (existing.role !== 'admin' || !existing.isSubscriptionActive) {
-          await updateDoc(userRef, {
-            role: 'admin',
-            isSubscriptionActive: true,
-            subscriptionDaysRemaining: 365,
-            maxDailyUsages: 9999,
-            maxUsages: 9999,
-          });
+          await withTimeout(
+            updateDoc(userRef, {
+              role: 'admin',
+              isSubscriptionActive: true,
+              subscriptionDaysRemaining: 365,
+              maxDailyUsages: 9999,
+              maxUsages: 9999,
+            }),
+            2500
+          ).catch((e) => console.warn('Aviso al actualizar admin en Firestore:', e));
           existing.role = 'admin';
           existing.isSubscriptionActive = true;
           existing.subscriptionDaysRemaining = 365;
@@ -339,12 +354,15 @@ export async function syncUserProfile(
         const daysRemaining = calculateDaysRemaining(existing.subscriptionExpiresAt);
         if (daysRemaining <= 0 && existing.subscriptionExpiresAt) {
           // La suscripción venció: desactivar en Firestore
-          await updateDoc(userRef, {
-            isSubscriptionActive: false,
-            subscriptionDaysRemaining: 0,
-            maxUsages: TRIAL_MAX_USAGES,
-            updatedAt: new Date().toISOString(),
-          });
+          await withTimeout(
+            updateDoc(userRef, {
+              isSubscriptionActive: false,
+              subscriptionDaysRemaining: 0,
+              maxUsages: TRIAL_MAX_USAGES,
+              updatedAt: new Date().toISOString(),
+            }),
+            2500
+          ).catch((e) => console.warn('Aviso al expirar suscripción:', e));
           existing.isSubscriptionActive = false;
           existing.subscriptionDaysRemaining = 0;
           existing.maxUsages = TRIAL_MAX_USAGES;
@@ -375,7 +393,7 @@ export async function syncUserProfile(
       ...(sanitizedPhotoURL ? { photoURL: sanitizedPhotoURL } : {}),
       role: isAdmin ? 'admin' : 'student',
       isSubscriptionActive: isAdmin,
-      subscriptionDaysRemaining: isAdmin ? 365 : 0,
+      subscriptionDaysRemaining: isAdmin ? 365 : 30,
       subscriptionExpiresAt: null,
       usagesUsed: 0,
       maxUsages: isAdmin ? 9999 : TRIAL_MAX_USAGES,
@@ -386,27 +404,32 @@ export async function syncUserProfile(
       updatedAt: new Date().toISOString(),
     };
 
-    await setDoc(userRef, newProfile);
+    await withTimeout(setDoc(userRef, newProfile), 2500).catch((e) =>
+      console.warn('Aviso: No se pudo guardar en Firestore remoto (modo offline/resiliente):', e)
+    );
     setCachedUserProfile(newProfile);
     return newProfile;
   } catch (error) {
-    console.error('Aviso al sincronizar con Firestore:', error);
-    // En caso de problema de conexión o cuota, devolver caché previa o perfil mínimo seguro
+    console.warn('Aviso: Firestore offline o no disponible aún. Utilizando perfil en memoria:', error);
+    // En caso de problema de conexión o base de datos aún no creada en Firebase Console
     const fallbackCached = getCachedUserProfile(user.uid);
     if (fallbackCached) return fallbackCached;
 
-    return {
+    const fallbackProfile: UserProfile = {
       uid: user.uid,
-      email: user.email || '',
-      displayName: user.displayName || 'Estudiante',
+      email: (user.email || '').toLowerCase().trim(),
+      displayName: user.displayName || user.email?.split('@')[0] || 'Estudiante',
+      photoURL: user.photoURL || undefined,
       role: isAdmin ? 'admin' : 'student',
       isSubscriptionActive: isAdmin,
-      subscriptionDaysRemaining: isAdmin ? 365 : 0,
+      subscriptionDaysRemaining: isAdmin ? 365 : 30,
       usagesUsed: 0,
-      maxUsages: TRIAL_MAX_USAGES,
+      maxUsages: isAdmin ? 9999 : TRIAL_MAX_USAGES,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    setCachedUserProfile(fallbackProfile);
+    return fallbackProfile;
   }
 }
 

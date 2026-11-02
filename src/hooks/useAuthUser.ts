@@ -38,8 +38,16 @@ export function useAuthUser() {
   useEffect(() => {
     let isMounted = true;
 
+    // Safety timeout: si Firebase tarda más de 2 segundos en responder, desbloquear la interfaz
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) {
+        setAuthLoading(false);
+      }
+    }, 2000);
+
     // Escuchar el estado de autenticación real de Firebase
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(safetyTimer);
       if (firebaseUser) {
         setAuthLoading(true);
         try {
@@ -87,6 +95,7 @@ export function useAuthUser() {
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimer);
       unsubscribeAuth();
     };
   }, []);
