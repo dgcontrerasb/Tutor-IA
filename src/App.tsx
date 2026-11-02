@@ -44,13 +44,7 @@ import { SubjectSelector } from './components/SubjectSelector';
 import { TaskSelector } from './components/TaskSelector';
 import { ResponseDepthSelector } from './components/ResponseDepthSelector';
 import { LoadingState } from './components/LoadingState';
-import { CorrectionCard } from './components/CorrectionCard';
-import { SummaryCard } from './components/SummaryCard';
-import { AnalysisCard } from './components/AnalysisCard';
-import { StepByStepCard } from './components/StepByStepCard';
-import { TopicExplanationCard } from './components/TopicExplanationCard';
-import { QuizGuideCard } from './components/QuizGuideCard';
-import { OcrCard } from './components/OcrCard';
+import { ResultsDisplay } from './components/ResultsDisplay';
 import { LoginPromptModal } from './components/LoginPromptModal';
 import { TrialBlockedModal } from './components/TrialBlockedModal';
 import { PaymentModal } from './components/PaymentModal';
@@ -63,28 +57,44 @@ import {
   SavedHomeworkItem,
 } from './components/RecentHomeworksHistory';
 import { getSubjectById, isSubjectVisualOrFormula } from './data/schoolSubjects';
-import { AuthToast, AuthToastData } from './components/AuthToast';
+import { AuthToast } from './components/AuthToast';
 import { getCleanDisplayName } from './components/AuthBar';
 import { CelebrationBurst } from './components/CelebrationBurst';
 import { PrintModal } from './components/PrintModal';
 import { DiagnosticModal } from './components/DiagnosticModal';
+import { useModals } from './hooks/useModals';
+import { useAuthUser } from './hooks/useAuthUser';
 
 export default function App() {
-  // Estado de usuario autenticado con Google (Punto 2)
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [authToast, setAuthToast] = useState<AuthToastData | null>(null);
-  const prevAuthUserUidRef = useRef<string | null | undefined>(undefined);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isTrialBlockedModalOpen, setIsTrialBlockedModalOpen] = useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [legalModalTab, setLegalModalTab] = useState<LegalTab>('terms');
+  // Hooks desacoplados de autenticación y modales
+  const {
+    currentUser,
+    setCurrentUser,
+    authLoading,
+    authToast,
+    setAuthToast,
+    isSyncing,
+    usage,
+    setUsage,
+    handleRefreshProfile,
+  } = useAuthUser();
 
-  // Estado de usos (calculado desde el perfil de Firebase si está logueado o local)
-  const [usage, setUsage] = useState<UserUsage>(getUsage());
+  const {
+    isLoginModalOpen,
+    setIsLoginModalOpen,
+    isTrialBlockedModalOpen,
+    setIsTrialBlockedModalOpen,
+    isPaymentModalOpen,
+    setIsPaymentModalOpen,
+    isAdminModalOpen,
+    setIsAdminModalOpen,
+    isLegalModalOpen,
+    setIsLegalModalOpen,
+    isPrintModalOpen,
+    setIsPrintModalOpen,
+    legalModalTab,
+    setLegalModalTab,
+  } = useModals();
 
   // Entradas de usuario
   const [textInput, setTextInput] = useState<string>('');
@@ -114,7 +124,6 @@ export default function App() {
 
   // Estados de ejecución
   const [isLoading, setIsLoading] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<HomeworkReviewResult | null>(null);
   const [isFormCollapsed, setIsFormCollapsed] = useState(false);
@@ -130,76 +139,6 @@ export default function App() {
       return () => clearTimeout(scrollTimer);
     }
   }, [result, isFormCollapsed]);
-
-  // Sincronización bajo demanda del perfil (1 lectura bajo demanda, 0 sockets continuos)
-  const handleRefreshProfile = async () => {
-    if (!auth.currentUser) return null;
-    setIsSyncing(true);
-    try {
-      const fresh = await syncUserProfile(auth.currentUser, true);
-      setCurrentUser(fresh);
-      setUsage(getUserUsageFromProfile(fresh));
-      return fresh;
-    } catch (err) {
-      console.error('Error al sincronizar perfil:', err);
-      return null;
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // Escuchar estado de autenticación de Google y sincronizar perfil usando caché local
-  useEffect(() => {
-    let isMounted = true;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setAuthLoading(true);
-        try {
-          // Utiliza la caché local (0 lecturas si se recarga la página dentro del tiempo de validez)
-          const profile = await syncUserProfile(firebaseUser);
-          if (isMounted) {
-            setCurrentUser(profile);
-            setUsage(getUserUsageFromProfile(profile));
-
-            // Si es un inicio de sesión activo tras cargar o cambiar de usuario, mostrar animación de bienvenida
-            if (prevAuthUserUidRef.current !== undefined && prevAuthUserUidRef.current !== firebaseUser.uid) {
-              setAuthToast({
-                type: 'login',
-                userName: getCleanDisplayName(profile),
-                role: profile.role,
-              });
-            }
-          }
-        } catch (err) {
-          console.error('Error sincronizando perfil de usuario:', err);
-        } finally {
-          if (isMounted) {
-            setAuthLoading(false);
-            prevAuthUserUidRef.current = firebaseUser.uid;
-          }
-        }
-      } else {
-        if (isMounted) {
-          // Si había un usuario previo conectado y ahora es null, mostrar animación de despedida
-          if (prevAuthUserUidRef.current !== undefined && prevAuthUserUidRef.current !== null) {
-            setAuthToast({
-              type: 'logout',
-            });
-          }
-          prevAuthUserUidRef.current = null;
-          setCurrentUser(null);
-          setAuthLoading(false);
-          setUsage(getUsage());
-        }
-      }
-    });
-
-    return () => {
-      isMounted = false;
-      unsubscribeAuth();
-    };
-  }, []);
 
   // Alternar selección de tarea
   const handleToggleTask = (task: TaskType) => {
@@ -797,168 +736,18 @@ export default function App() {
                     subjectName={getSubjectById(selectedSubjectId).shortName}
                   />
 
-                  {/* Aviso visual al recargar una consulta guardada */}
-                  {reloadedNotice && (
-                    <div className="p-3.5 bg-[#FFE66D] rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[4px_4px_0px_#1A1A1A] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-2xl">📓</span>
-                        <div>
-                          <p className="text-xs sm:text-sm font-black text-[#1A1A1A]">
-                            {reloadedNotice}
-                          </p>
-                          <p className="text-[11px] font-bold text-[#1A1A1A]/70">
-                            Ficha cargada directamente desde tu memoria local. Puedes repasarla libremente sin gastar consultas.
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setReloadedNotice(null)}
-                        className="px-2.5 py-1 bg-white hover:bg-[#FAF7EE] text-[#1A1A1A] rounded-xl border-2 border-[#1A1A1A] text-xs font-black shadow-[1.5px_1.5px_0px_#1A1A1A] cursor-pointer shrink-0"
-                      >
-                        Entendido ✓
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Cabecera exclusiva para impresión en hoja escolar (@media print) */}
-                  <div className="hidden print-header">
-                    <div className="flex justify-between items-center text-sm font-bold">
-                      <span className="font-black">📓 TUTOR-IA - FICHA ESCOLAR DE ESTUDIO</span>
-                      <span>Fecha: {new Date().toLocaleDateString('es-ES')} - {result.timestamp}</span>
-                    </div>
-                    <div className="text-xs text-gray-700 mt-1 flex gap-4">
-                      <span><strong>Alumno:</strong> {getCleanDisplayName(currentUser)}</span>
-                      <span><strong>Materia:</strong> {getSubjectById(selectedSubjectId).name} ({gradeLevel === 'secundaria' ? 'Secundaria' : 'Primaria'})</span>
-                    </div>
-                  </div>
-
-                  {/* Barra de cabecera de resultados en pantalla con acciones del estudiante */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[4px_4px_0px_#1A1A1A]">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-2xl">🎓</span>
-                      <div>
-                        <h2 className="text-base sm:text-lg font-black text-[#1A1A1A]">
-                          Resultado de la Revisión Escolar
-                        </h2>
-                        <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold text-[#1A1A1A]/70">
-                          <span>Revisado a las {result.timestamp}</span>
-                          {result.processingTimeMs && <span>• {(result.processingTimeMs / 1000).toFixed(1)}s</span>}
-                          <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-300 flex items-center gap-1 font-black">
-                            <BookmarkCheck className="w-3 h-3 text-emerald-600" />
-                            Guardado en tu cuaderno local
-                          </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full border border-[#1A1A1A] text-[10px] font-black uppercase flex items-center gap-1 shadow-[1px_1px_0px_#1A1A1A] ${
-                              result.responseDepth === 'detailed'
-                                ? 'bg-[#A8E6CF] text-[#1A1A1A]'
-                                : 'bg-[#FFE66D] text-[#1A1A1A]'
-                            }`}
-                          >
-                            {result.responseDepth === 'detailed' ? '📚 Modo Detallado' : '⚡ Modo Resumido'}
-                          </span>
-                          {/* Badge Neobrutalista de Motor / Fuente Activa (Exclusivo Auditoría Admin) */}
-                          {(currentUser?.role === 'admin' ||
-                            currentUser?.email?.toLowerCase() === 'dgcontrerasb@gmail.com') && (
-                            <>
-                              {result.provider === 'wikipedia' && (
-                                <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#A0E7E5] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                                  📚 Fuente: Wikipedia REST (0 tokens)
-                                </span>
-                              )}
-                              {result.provider === 'groq' && (
-                                <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#D9F99D] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                                  ⚡ Motor: Groq IA (openai/gpt-oss-120b)
-                                </span>
-                              )}
-                              {result.provider === 'pollinations' && (
-                                <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#F5D0FE] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                                  🌐 Respaldo: Pollinations AI
-                                </span>
-                              )}
-                              {result.provider === 'local' && (
-                                <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#FFE66D] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                                  📓 Glosario Escolar Local
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {/* Botón rápido: Copiar al portapapeles */}
-                      <button
-                        type="button"
-                        onClick={handleCopyNotes}
-                        className={`neo-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
-                          copiedSuccess
-                            ? 'bg-[#A8E6CF] text-emerald-950'
-                            : 'bg-[#FAF7EE] hover:bg-[#FFE66D] text-[#1A1A1A]'
-                        }`}
-                        title="Copiar apunte escolar al portapapeles"
-                      >
-                        {copiedSuccess ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-900" />
-                            <span>¡Copiado! ✓</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Copiar apunte</span>
-                          </>
-                        )}
-                      </button>
-
-                      {/* Botón rápido: Descargar en PDF */}
-                      <button
-                        type="button"
-                        onClick={handlePrint}
-                        className="neo-btn flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF7EE] hover:bg-[#A0E7E5] text-[#1A1A1A] rounded-xl text-xs font-bold cursor-pointer"
-                        title="Descargar en PDF o copiar ficha de estudio"
-                      >
-                        <FileDown className="w-3.5 h-3.5" />
-                        <span>Descargar en PDF</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Si se envió foto y se realizó lectura de texto, mostrar transcripción */}
-                  {result.ocrTranscribedText && (
-                    <OcrCard transcription={result.ocrTranscribedText} />
-                  )}
-
-                  {/* Tarjeta de Solución Paso a Paso (Matemáticas, Física, Química, etc.) */}
-                  {result.stepByStep && (
-                    <StepByStepCard data={result.stepByStep} />
-                  )}
-
-                  {/* Tarjeta de Explicación Didáctica del Tema (Ciencias, Sociales, etc.) */}
-                  {result.topicExplanation && (
-                    <TopicExplanationCard data={result.topicExplanation} />
-                  )}
-
-                  {/* Tarjeta de Guía de Taller & Preguntas de Examen */}
-                  {result.quizGuide && (
-                    <QuizGuideCard data={result.quizGuide} />
-                  )}
-
-                  {/* Tarjeta: Corrección Ortográfica */}
-                  {result.correction && (
-                    <CorrectionCard data={result.correction} />
-                  )}
-
-                  {/* Tarjeta: Resumen del Texto */}
-                  {result.summary && (
-                    <SummaryCard data={result.summary} />
-                  )}
-
-                  {/* Tarjeta: Análisis del Texto */}
-                  {result.analysis && (
-                    <AnalysisCard data={result.analysis} />
-                  )}
+                  {/* Componente modular de Resultados con pestañas anti-fatiga de scroll */}
+                  <ResultsDisplay
+                    result={result}
+                    reloadedNotice={reloadedNotice}
+                    onClearReloadedNotice={() => setReloadedNotice(null)}
+                    currentUser={currentUser}
+                    selectedSubjectId={selectedSubjectId}
+                    gradeLevel={gradeLevel}
+                    copiedSuccess={copiedSuccess}
+                    onCopyNotes={handleCopyNotes}
+                    onPrint={handlePrint}
+                  />
                 </>
               )}
             </div>

@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { LogIn, LogOut, User as UserIcon, Shield, Sparkles, RefreshCw } from 'lucide-react';
-import { UserProfile, loginWithGoogle, logout } from '../services/firebase';
+import { UserProfile, loginWithGoogle, logout, isFirebaseConfigured } from '../services/firebase';
 
 interface AuthBarProps {
   user: UserProfile | null;
@@ -72,7 +72,21 @@ export const AuthBar: React.FC<AuthBarProps> = ({ user, loading, onRefresh, isSy
       console.error('Error al iniciar sesión con Google:', err);
       const msg = err instanceof Error ? err.message : 'No se pudo completar el inicio de sesión';
       if (!msg.includes('popup-closed-by-user')) {
-        setErrorMsg('Error al conectar con Google. Por favor intenta nuevamente.');
+        if (msg.includes('operation-not-allowed')) {
+          setErrorMsg('Debes habilitar "Google" en Firebase Console > Authentication > Sign-in method.');
+        } else if (msg.includes('unauthorized-domain')) {
+          setErrorMsg('Dominio no autorizado. Entra por http://localhost:3000 (no por IP).');
+        } else if (msg.includes('popup-blocked')) {
+          setErrorMsg('Tu navegador bloqueó la ventana emergente de Google.');
+        } else if (msg.includes('invalid-api-key') || msg.includes('api-key-not-valid')) {
+          setErrorMsg('La VITE_FIREBASE_API_KEY en tu .env es incorrecta.');
+        } else {
+          setErrorMsg(
+            !isFirebaseConfigured
+              ? 'Configura tus variables de Firebase en el archivo .env.'
+              : `Error Google (${msg.replace(/Firebase:\s*/i, '').slice(0, 60)}). Habilita Google en Firebase Console.`
+          );
+        }
       }
     } finally {
       setLoggingIn(false);
@@ -105,7 +119,7 @@ export const AuthBar: React.FC<AuthBarProps> = ({ user, loading, onRefresh, isSy
 
       {!user ? (
         <button
-          onClick={handleLogin}
+          onClick={() => handleLogin()}
           disabled={loggingIn}
           className="neo-btn flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-[#FAF7EE] text-[#1A1A1A] rounded-xl text-xs font-black cursor-pointer shadow-[2px_2px_0px_#1A1A1A] transition-all hover:scale-[1.02] active:scale-95"
           title="Iniciar sesión con Google"

@@ -67,6 +67,12 @@ const firebaseConfig: FirebaseConfigData = {
     '',
 };
 
+export const isFirebaseConfigured = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.apiKey.length > 5 &&
+  firebaseConfig.projectId
+);
+
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = getAuth(app);
@@ -75,10 +81,13 @@ googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-// Base de datos Firestore con el ID específico del proyecto
-export const db = firebaseConfig.firestoreDatabaseId
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
+// Base de datos Firestore (usa la base por defecto '(default)' a menos que se defina un ID explícito válido)
+export const db =
+  isFirebaseConfigured &&
+  firebaseConfig.firestoreDatabaseId &&
+  !firebaseConfig.firestoreDatabaseId.startsWith('ai-studio-')
+    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+    : getFirestore(app);
 
 export interface UserProfile {
   uid: string;
@@ -263,7 +272,6 @@ export function getUserUsageFromProfile(profile: UserProfile | null): import('..
 export async function loginWithGoogle(): Promise<UserProfile> {
   const result = await signInWithPopup(auth, googleProvider);
   const user = result.user;
-  // Al hacer login explícito, consultar Firestore una vez para refrescar datos
   return await syncUserProfile(user, true);
 }
 
@@ -272,6 +280,9 @@ export async function loginWithGoogle(): Promise<UserProfile> {
  */
 export async function logout(): Promise<void> {
   clearCachedUserProfile();
+  try {
+    localStorage.removeItem('tutor_ia_local_mock_user');
+  } catch {}
   await fbSignOut(auth);
 }
 

@@ -6,6 +6,7 @@ import { getPedagogicalKnowledgeFallback } from './server/schoolKnowledge';
 import { SchoolSubjectId } from './src/types';
 
 import fs from 'fs';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -29,8 +30,8 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-// Soporte para imágenes de tareas y documentos en Base64 hasta 8MB (seguridad contra DoS)
-app.use(express.json({ limit: '8mb' }));
+// Soporte para imágenes de tareas y documentos en Base64 hasta 4MB (alineado con Vercel Serverless Lambdas)
+app.use(express.json({ limit: '4mb' }));
 
 // Limitador de tasa por IP en memoria (máximo 20 peticiones por minuto por IP)
 interface RateLimitRecord {
@@ -66,10 +67,39 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+// Caché en memoria para certificados públicos oficiales de Firebase (Google x509)
+let googleCertsCache: Record<string, string> = {};
+let googleCertsExpiresAt = 0;
+
+async function getGooglePublicCerts(): Promise<Record<string, string>> {
+  const now = Date.now();
+  if (googleCertsExpiresAt > now && Object.keys(googleCertsCache).length > 0) {
+    return googleCertsCache;
+  }
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
+    );
+    if (res.ok) {
+      const data = (await res.json()) as Record<string, string>;
+      googleCertsCache = data;
+      const cacheControl = res.headers.get('cache-control') || '';
+      const match = cacheControl.match(/max-age=(\d+)/);
+      const maxAgeSeconds = match ? parseInt(match[1], 10) : 21600; // 6 horas
+      googleCertsExpiresAt = now + maxAgeSeconds * 1000;
+      return googleCertsCache;
+    }
+  } catch (err) {
+    console.warn('[CISO Auth] No se pudieron actualizar certificados públicos de Google:', err);
+  }
+  return googleCertsCache;
+}
+
 /**
- * Valida la autenticidad y vigencia del Bearer token de Firebase emitido para este proyecto
+ * Valida la autenticidad, vigencia y firma criptográfica asimétrica (RS256)
+ * del Bearer token de Firebase emitido para este proyecto.
  */
-function verifyFirebaseToken(authHeader?: string): { valid: boolean; uid?: string; error?: string } {
+async function verifyFirebaseToken(authHeader?: string): Promise<{ valid: boolean; uid?: string; error?: string }> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { valid: false, error: 'Acceso no autorizado: debes identificarte con tu cuenta escolar de Google para revisar tareas.' };
   }
@@ -85,21 +115,48 @@ function verifyFirebaseToken(authHeader?: string): { valid: boolean; uid?: strin
       return { valid: false, error: 'Formato de credencial no válido.' };
     }
 
-    const payloadRaw = Buffer.from(parts[1], 'base64url').toString('utf-8');
-    const payload = JSON.parse(payloadRaw);
+    const [headerB64, payloadB64, signatureB64] = parts;
+    const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString('utf-8'));
+    const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf-8'));
 
-    // Validar expiración del token
-    if (typeof payload.exp === 'number' && payload.exp * 1000 < Date.now()) {
+    // 1. Validar algoritmo de firma de Google y presencia de Key ID (kid)
+    if (header.alg !== 'RS256' || !header.kid) {
+      return { valid: false, error: 'Algoritmo o llave de credencial no compatible.' };
+    }
+
+    // 2. Validar expiración del token
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (typeof payload.exp === 'number' && payload.exp < nowSeconds) {
       return { valid: false, error: 'Tu sesión escolar ha caducado. Por favor recarga la página para continuar.' };
     }
 
-    // Validar coincidencia de proyecto
-    if (firebaseConfig.projectId) {
-      if (payload.aud !== firebaseConfig.projectId) {
+    // 3. Validar proyecto escolar (aud y iss)
+    const currentProjectId = firebaseConfig.projectId;
+    if (currentProjectId) {
+      if (payload.aud !== currentProjectId) {
         return { valid: false, error: 'El token de acceso no corresponde a este proyecto escolar.' };
       }
-      if (payload.iss !== `https://securetoken.google.com/${firebaseConfig.projectId}`) {
+      if (payload.iss !== `https://securetoken.google.com/${currentProjectId}`) {
         return { valid: false, error: 'Emisor de credenciales no autorizado.' };
+      }
+    }
+
+    // 4. Verificación criptográfica de firma con claves públicas oficiales de Google
+    const certs = await getGooglePublicCerts();
+    let cert = certs[header.kid];
+    if (!cert) {
+      // Reintentar refrescando la caché si el kid rotó
+      googleCertsExpiresAt = 0;
+      const freshCerts = await getGooglePublicCerts();
+      cert = freshCerts[header.kid];
+    }
+
+    if (cert) {
+      const verifier = crypto.createVerify('RSA-SHA256');
+      verifier.update(`${headerB64}.${payloadB64}`);
+      const isSignatureValid = verifier.verify(cert, signatureB64, 'base64url');
+      if (!isSignatureValid) {
+        return { valid: false, error: 'Firma criptográfica de credencial inválida o alterada.' };
       }
     }
 
@@ -228,6 +285,7 @@ async function callOpenAICompatibleProvider({
       body: JSON.stringify({
         model,
         temperature: 0.2,
+        max_tokens: 1500,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemInstruction },
@@ -274,9 +332,9 @@ app.post('/api/review', async (req, res) => {
     });
   }
 
-  // 2. Verificación de credenciales de Firebase del estudiante
+  // 2. Verificación criptográfica de credenciales de Firebase del estudiante
   const authHeader = req.headers.authorization;
-  const authResult = verifyFirebaseToken(authHeader);
+  const authResult = await verifyFirebaseToken(authHeader);
   if (!authResult.valid) {
     return res.status(401).json({
       error: authResult.error || 'Acceso no autorizado. Inicia sesión con tu cuenta Google para revisar tareas.',
@@ -528,7 +586,7 @@ Responde SIEMPRE en español. Tu respuesta debe ser un objeto JSON válido con l
       : userTextPrompt;
 
     // 1. NIVEL 1: Groq Cloud ($0 USD - openai/gpt-oss-120b / qwen/qwen3.8-27b)
-    const rawGroq = process.env.GROQ_API_KEY;
+    const rawGroq = (req.headers['x-groq-api-key'] as string) || process.env.GROQ_API_KEY;
     const groqKey = rawGroq ? rawGroq.trim().replace(/^["'`]|["'`]$/g, '').replace(/^bearer\s+/i, '').trim() : '';
     if (groqKey) {
       const groqModels = hasImage
@@ -674,6 +732,21 @@ async function startServer() {
       appType: 'spa',
     });
     app.use(vite.middlewares);
+
+    // Servir index.html transformado por Vite para SPA en desarrollo local
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      if (url.startsWith('/api')) {
+        return next();
+      }
+      try {
+        let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        next(e);
+      }
+    });
   } else {
     app.use(express.static(path.resolve(__dirname, 'dist')));
     app.get('*', (_req, res) => {
@@ -681,9 +754,22 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor activo en el puerto ${PORT}`);
-  });
+  function listenOnPort(portToUse: number) {
+    const serverInstance = app.listen(portToUse, '0.0.0.0', () => {
+      console.log(`Servidor activo en http://localhost:${portToUse}`);
+    });
+
+    serverInstance.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`[Servidor] El puerto ${portToUse} está ocupado. Intentando en http://localhost:${portToUse + 1}...`);
+        listenOnPort(portToUse + 1);
+      } else {
+        console.error('[Servidor] Error al iniciar servidor:', err);
+      }
+    });
+  }
+
+  listenOnPort(PORT);
 }
 
 // Ejecutar listen() únicamente fuera del entorno Serverless de Vercel

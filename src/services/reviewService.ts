@@ -177,6 +177,7 @@ async function callOpenAICompatibleProvider({
       body: JSON.stringify({
         model,
         temperature: 0.2,
+        max_tokens: 1500,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemInstruction },
@@ -689,6 +690,12 @@ export async function reviewHomework({
     'Content-Type': 'application/json',
   };
 
+  // Pasar clave de diagnóstico opcional por cabecera segura HTTPS hacia el backend
+  const customGroqKey = typeof window !== 'undefined' ? localStorage.getItem('cp_debug_groq_key') : null;
+  if (customGroqKey && customGroqKey.trim().startsWith('gsk_')) {
+    headers['x-groq-api-key'] = customGroqKey.trim();
+  }
+
   if (auth.currentUser) {
     try {
       const idToken = await auth.currentUser.getIdToken();
@@ -720,17 +727,17 @@ export async function reviewHomework({
       return data as HomeworkReviewResult;
     }
 
-    // Si es un error 400 de validación (ej. texto demasiado largo), mostrarlo al usuario
-    if (response.status === 400) {
+    // Si el servidor emitió un rechazo explícito (400, 401 No Autorizado, 429 Rate Limit)
+    if (response.status === 400 || response.status === 401 || response.status === 429) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData?.error || 'Revisa los datos enviados e intenta nuevamente.');
     }
   } catch (err) {
-    // Si fue un error de validación explícito (400), relanzarlo
-    if (err instanceof Error && err.message.includes('límite permitido')) {
+    // Si fue un error explícito del backend, relanzarlo para que el usuario sea informado
+    if (err instanceof Error && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
       throw err;
     }
-    console.log('[Modo Híbrido] Servidor no disponible o estático. Resolviendo directamente en el navegador con Multi-IA Gratuita...');
+    console.log('[Modo Híbrido] Servidor no disponible o modo estático. Resolviendo con respaldo gratuito...');
   }
 
   // Ruta 2: Modo Híbrido Autónomo en Navegador (100% Gratis sin servidor ni facturación)

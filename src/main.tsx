@@ -1,5 +1,65 @@
-import {createRoot} from 'react-dom/client';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(<App />);
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false,
+    error: null,
+  };
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('[Tutor-IA ErrorBoundary] Excepción no capturada:', error, errorInfo);
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#FAF7EE] flex items-center justify-center p-4">
+          <div className="max-w-lg w-full bg-white rounded-2xl border-[3px] border-[#1A1A1A] shadow-[8px_8px_0px_#1A1A1A] p-6 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-[#FF8B94] rounded-2xl border-2 border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A] flex items-center justify-center text-3xl">
+              ⚠️
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-[#1A1A1A] mb-2">
+              Se produjo un error al cargar la aplicación
+            </h1>
+            <p className="text-xs sm:text-sm text-[#1A1A1A]/70 mb-4 font-medium">
+              El asistente escolar detectó un problema en la ejecución inicial.
+            </p>
+            <div className="bg-[#FAF7EE] p-3 rounded-xl border-2 border-[#1A1A1A] text-left text-xs text-red-900 font-mono mb-5 overflow-auto max-h-36">
+              {this.state.error?.message || 'Error desconocido'}
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="neo-btn px-5 py-2.5 bg-[#FFE66D] hover:bg-[#fedd48] text-[#1A1A1A] text-sm font-black rounded-xl cursor-pointer border-2 border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A]"
+            >
+              🔄 Recargar página
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+createRoot(document.getElementById('root')!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
