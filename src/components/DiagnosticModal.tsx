@@ -266,24 +266,47 @@ export function DiagnosticModal() {
       }
     }
 
-    // 2. TEST POLLINATIONS AI (Sin Key)
-    updateServiceState(1, { status: 'testing', message: 'Conectando con Pollinations AI (Sin Key)...' });
+    // 2. TEST POLLINATIONS AI (Respaldo)
+    updateServiceState(1, { status: 'testing', message: 'Conectando con Pollinations AI...' });
     {
       const t0 = Date.now();
+      const pollKey = (import.meta.env.VITE_POLLINATIONS_API_KEY || '').trim();
       try {
         let isSuccess = false;
         let lastStatus = 0;
 
-        // Intento 1: Ping rápido GET a https://text.pollinations.ai (sin CORS preflight)
-        try {
-          const res = await fetch('https://text.pollinations.ai/ping?model=openai', {
-            signal: AbortSignal.timeout(9000),
-          });
-          lastStatus = res.status;
-          if (res.ok) isSuccess = true;
-        } catch {}
+        // Intento 1: Con API Key si está configurada en .env
+        if (pollKey) {
+          try {
+            const resKey = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${pollKey}`,
+              },
+              body: JSON.stringify({
+                model: 'openai',
+                messages: [{ role: 'user', content: 'Di OK' }],
+              }),
+              signal: AbortSignal.timeout(9000),
+            });
+            lastStatus = resKey.status;
+            if (resKey.ok) isSuccess = true;
+          } catch {}
+        }
 
-        // Intento 2: POST directo a https://text.pollinations.ai (sin key)
+        // Intento 2: Ping rápido GET a https://text.pollinations.ai
+        if (!isSuccess) {
+          try {
+            const res = await fetch('https://text.pollinations.ai/ping?model=openai', {
+              signal: AbortSignal.timeout(9000),
+            });
+            lastStatus = res.status;
+            if (res.ok) isSuccess = true;
+          } catch {}
+        }
+
+        // Intento 3: POST directo sin key
         if (!isSuccess) {
           try {
             const res2 = await fetch('https://text.pollinations.ai', {
@@ -308,14 +331,24 @@ export function DiagnosticModal() {
             status: 'online',
             latencyMs: latency,
             message: 'Conexión exitosa y abierta (200 OK).',
-            details: 'Motor 100% gratuito sin API Key operativo como respaldo inmediato.',
+            details: pollKey
+              ? 'Conectado mediante llave en enter.pollinations.ai.'
+              : 'Motor gratuito sin API Key operativo como respaldo inmediato.',
           });
         } else {
           updateServiceState(1, {
             status: 'error',
             latencyMs: latency,
-            message: lastStatus ? `Servidor con respuesta (${lastStatus}).` : 'Tiempo de espera agotado en Pollinations.',
-            details: 'Pollinations ocupado o en mantenimiento temporal.',
+            message:
+              lastStatus === 403
+                ? 'Protegido por Cloudflare WAF (403).'
+                : lastStatus
+                ? `Servidor con respuesta (${lastStatus}).`
+                : 'Tiempo de espera agotado en Pollinations.',
+            details:
+              lastStatus === 403
+                ? 'Pollinations ahora requiere una API Key gratuita desde enter.pollinations.ai para evitar bloqueos de Cloudflare. Tu app usa Groq Cloud (Online) de forma predeterminada.'
+                : 'Pollinations ocupado o en mantenimiento temporal.',
           });
         }
       } catch (err: unknown) {
