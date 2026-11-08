@@ -1,9 +1,10 @@
 /**
  * Modal amigable de aviso para iniciar sesión con Google
+ * Adaptado al sistema visual Bento Grid Moderno.
  */
 
 import React, { useState } from 'react';
-import { X, Lock, CheckCircle2 } from 'lucide-react';
+import { X, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { loginWithGoogle } from '../services/firebase';
 
 interface LoginPromptModalProps {
@@ -41,52 +42,63 @@ export const LoginPromptModal: React.FC<LoginPromptModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="relative w-full max-w-md bg-[#FAF7EE] rounded-2xl border-[3px] border-[#1A1A1A] shadow-[8px_8px_0px_#1A1A1A] p-6 text-center">
-        {/* Washi tape decorativo */}
-        <div className="washi-tape top-3 left-10 w-24"></div>
-
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+    >
+      <div className="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 text-center">
+        {/* Botón Cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 bg-[#FF8B94] rounded-lg border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+          className="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl cursor-pointer transition-all active:scale-95"
           title="Cerrar"
         >
-          <X className="w-4 h-4 text-[#1A1A1A]" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-[#FFE66D] border-2 border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A] flex items-center justify-center mb-4 mt-2">
-          <Lock className="w-7 h-7 text-[#1A1A1A]" />
+        {/* Emblema */}
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-center mb-4 text-indigo-600 shadow-xs">
+          <Lock className="w-7 h-7" />
         </div>
 
-        <h3 className="text-xl font-black text-[#1A1A1A] mb-2 font-display">
-          Identifícate con tu cuenta escolar
+        <h3 className="text-xl font-extrabold text-slate-900 tracking-tight mb-2">
+          ¡Guarda tus tareas y consultas!
         </h3>
 
-        <p className="text-xs sm:text-sm font-medium text-[#1A1A1A]/80 mb-5 leading-relaxed">
-          Inicia sesión para guardar tus tareas revisadas y desbloquear tus apuntes en tu cuaderno de estudio.
+        <p className="text-xs sm:text-sm text-slate-500 mb-5 leading-relaxed">
+          Inicia sesión con tu cuenta de Google para guardar tus tareas escolares, continuar tus revisiones y disfrutar de tus consultas de bienvenida.
         </p>
 
+        {/* Beneficios */}
+        <div className="bg-slate-50/80 rounded-2xl border border-slate-200/80 p-4 text-left text-xs font-medium text-slate-700 space-y-2 mb-6">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Día de prueba gratis (24 horas ilimitadas)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Historial guardado en "Mi Cuaderno"</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Soporte en las 18 materias escolares</span>
+          </div>
+        </div>
+
         {errorMessage && (
-          <div className="mb-4 p-2.5 bg-red-100 border-2 border-red-400 rounded-xl text-xs font-bold text-red-950">
-            {errorMessage}
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2 text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{errorMessage}</span>
           </div>
         )}
 
-        <div className="bg-white rounded-xl border-2 border-[#1A1A1A] p-3 text-xs text-left mb-5 space-y-1.5 font-bold text-[#1A1A1A]">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-            <span>Consultas ilimitadas en las 18 materias escolares</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-            <span>Guarda tus revisiones y explicaciones paso a paso</span>
-          </div>
-        </div>
-
+        {/* Botón de acceso de Google */}
         <button
-          onClick={() => handleLogin()}
+          onClick={handleLogin}
           disabled={loading}
-          className="neo-btn w-full py-3 bg-white hover:bg-[#FAF7EE] text-[#1A1A1A] text-sm font-black rounded-xl cursor-pointer flex items-center justify-center gap-2.5 shadow-[3px_3px_0px_#1A1A1A]"
+          className="w-full py-3.5 px-4 bg-white hover:bg-slate-50 active:scale-98 border border-slate-300 rounded-2xl text-xs sm:text-sm font-semibold text-slate-800 shadow-xs cursor-pointer flex items-center justify-center gap-3 transition-all disabled:opacity-50"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -106,11 +118,11 @@ export const LoginPromptModal: React.FC<LoginPromptModalProps> = ({ isOpen, onCl
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>{loading ? 'Conectando...' : 'Acceder con Google'}</span>
+          <span>{loading ? 'Conectando con Google...' : 'Continuar con Google'}</span>
         </button>
 
-        <p className="text-[11px] font-semibold text-[#1A1A1A]/60 mt-3">
-          Uso estrictamente personal y educativo. Tus datos están protegidos bajo la Ley 1581 de Protección de Datos.
+        <p className="text-[11px] text-slate-400 mt-4">
+          Sin contraseñas adicionales. Tu cuenta es 100% personal y segura.
         </p>
       </div>
     </div>

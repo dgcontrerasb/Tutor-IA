@@ -7,7 +7,7 @@
  * alumno reciba su solución completa sin notar ninguna diferencia si la IA se satura.
  */
 
-import { HomeworkReviewResult, GradeLevel, SelectedTasks, SchoolSubjectId, ResponseDepth } from '../src/types';
+import { HomeworkReviewResult, GradeLevel, SelectedTasks, SchoolSubjectId, ResponseDepth } from '../src/types/index';
 
 interface FallbackParams {
   subjectId?: SchoolSubjectId;
@@ -182,6 +182,7 @@ async function searchWikipediaSummary(query: string): Promise<{ title: string; e
         'User-Agent': 'TutorIATutor/1.0 (https://tutor-ia.edu; contacto@tutor-ia.edu)',
         Accept: 'application/json',
       },
+      signal: AbortSignal.timeout(2500),
     });
 
     if (res.ok) {
@@ -200,6 +201,7 @@ async function searchWikipediaSummary(query: string): Promise<{ title: string; e
       headers: {
         'User-Agent': 'TutorIATutor/1.0 (contacto@tutor-ia.edu)',
       },
+      signal: AbortSignal.timeout(2500),
     });
 
     if (searchRes.ok) {
@@ -213,6 +215,7 @@ async function searchWikipediaSummary(query: string): Promise<{ title: string; e
             'User-Agent': 'TutorIATutor/1.0',
             Accept: 'application/json',
           },
+          signal: AbortSignal.timeout(2500),
         });
         if (pageRes.ok) {
           const pageData = await pageRes.json();

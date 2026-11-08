@@ -24,13 +24,13 @@ export const OcrCard: React.FC<OcrCardProps> = ({ transcription }) => {
   };
 
   return (
-    <div className="bg-[#FAF7EE] rounded-2xl border-2 border-[#1A1A1A] p-4 shadow-[4px_4px_0px_#1A1A1A]">
+    <div className="bg-slate-50/80 rounded-2xl border border-slate-200 p-4 shadow-xs">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-[#FFE66D] border border-[#1A1A1A] flex items-center justify-center">
-            <FileText className="w-3.5 h-3.5 text-[#1A1A1A]" />
+          <div className="w-6 h-6 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <FileText className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-black uppercase tracking-wider text-[#1A1A1A]">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
             Texto detectado en tu foto (OCR):
           </span>
         </div>
@@ -38,11 +38,11 @@ export const OcrCard: React.FC<OcrCardProps> = ({ transcription }) => {
         <button
           type="button"
           onClick={handleCopy}
-          className="text-xs font-bold text-[#1A1A1A] hover:underline flex items-center gap-1 cursor-pointer"
+          className="text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center gap-1 cursor-pointer transition-colors"
         >
           {copied ? (
             <>
-              <Check className="w-3.5 h-3.5 text-emerald-700" />
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
               <span>Copiado</span>
             </>
           ) : (
@@ -54,7 +54,7 @@ export const OcrCard: React.FC<OcrCardProps> = ({ transcription }) => {
         </button>
       </div>
 
-      <p className="text-xs sm:text-sm font-mono text-[#1A1A1A]/85 bg-white p-3 rounded-xl border border-[#1A1A1A] whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
+      <p className="text-xs sm:text-sm font-mono text-slate-700 bg-white p-3 rounded-xl border border-slate-200 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
         {transcription}
       </p>
     </div>

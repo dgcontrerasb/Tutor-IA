@@ -219,83 +219,82 @@ export const RecentHomeworksHistory: React.FC<RecentHomeworksHistoryProps> = ({
     <>
       {/* ========================================================
           BOTÓN FLOTANTE "MI CUADERNO"
-          Acceso rápido y cómodo para repasar apuntes guardados
+          Diseño Bento Moderno: limpio, sutil y elegante
           ======================================================== */}
       <div className="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-40">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="neo-btn group flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-[#FFE66D] hover:bg-[#fedd48] text-[#1A1A1A] rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A] cursor-pointer transition-all hover:scale-105 active:scale-95"
+          className="group flex items-center gap-2.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 rounded-2xl border border-slate-200 shadow-md hover:shadow-lg cursor-pointer transition-all hover:-translate-y-0.5 active:translate-y-0"
           title="Abrir Mi Cuaderno de Apuntes"
           aria-label="Abrir Mi Cuaderno"
         >
           {/* Icono de Libreta Escolar */}
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white border-2 border-[#1A1A1A] flex items-center justify-center shrink-0 shadow-[1.5px_1.5px_0px_#1A1A1A]">
-            <BookOpen className="w-4 h-4 text-[#1A1A1A] group-hover:scale-110 transition-transform" />
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 text-indigo-600 group-hover:scale-105 transition-transform" />
           </div>
 
           {/* Texto descriptivo */}
           <div className="text-left hidden xs:block pr-1">
-            <span className="text-xs sm:text-sm font-black text-[#1A1A1A] block leading-tight">
+            <span className="text-xs sm:text-sm font-bold text-slate-800 block leading-tight">
               Mi Cuaderno
             </span>
-            <span className="text-[10px] font-bold text-[#1A1A1A]/70 block leading-none">
+            <span className="text-[10px] text-slate-400 block leading-tight">
               {items.length === 1 ? '1 apunte' : `${items.length} apuntes`}
             </span>
           </div>
 
           {/* Insignia con el conteo de fichas guardadas */}
-          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#FF6B6B] border border-[#1A1A1A] text-white text-[10px] sm:text-[11px] font-black flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#1A1A1A]">
+          <div className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
             {items.length}
           </div>
         </button>
       </div>
 
       {/* ========================================================
-          PANEL INFERIOR DESLIZABLE (MÓVIL) Y MODAL CENTRADO (DESKTOP)
-          Totalmente limpio, sin textos técnicos ni explicaciones redundantes
+          PANEL MODAL "MI CUADERNO" - DISEÑO BENTO LIMPIO
           ======================================================== */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-full sm:max-w-3xl max-h-[85vh] sm:max-h-[88vh] bg-[#FAF7EE] rounded-t-3xl sm:rounded-3xl border-t-[3.5px] border-x-[3.5px] sm:border-[3.5px] border-[#1A1A1A] shadow-[0_-6px_25px_rgba(0,0,0,0.2)] sm:shadow-[8px_8px_0px_#1A1A1A] flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200"
+            className="w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Manija táctil sutil para móvil */}
-            <div className="sm:hidden pt-1.5 pb-0.5 bg-[#FFE66D] flex justify-center">
-              <div className="w-10 h-1 bg-[#1A1A1A]/25 rounded-full" />
+            <div className="sm:hidden pt-2 pb-1 bg-slate-50 flex justify-center">
+              <div className="w-10 h-1 bg-slate-300 rounded-full" />
             </div>
 
-            {/* Cabecera Compacta y Profesional (Fila Única) */}
-            <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 bg-[#FFE66D] border-b-2 border-[#1A1A1A] flex items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white border-2 border-[#1A1A1A] flex items-center justify-center shadow-[1.5px_1.5px_0px_#1A1A1A] shrink-0">
-                  <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1A1A1A]" />
+            {/* Cabecera Compacta Bento */}
+            <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-4 h-4 text-indigo-600" />
                 </div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <h2 className="text-sm sm:text-base font-black text-[#1A1A1A] tracking-tight truncate">
-                    Mi Cuaderno
+                  <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight truncate">
+                    Mi Cuaderno de Estudio
                   </h2>
-                  <span className="text-[11px] font-black text-[#1A1A1A] bg-white/90 px-2 py-0.5 rounded-lg border border-[#1A1A1A]/35 shadow-[1px_1px_0px_#1A1A1A]/20 shrink-0">
-                    {items.length} {items.length === 1 ? 'apunte' : 'apuntes'}
+                  <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
+                    {items.length} {items.length === 1 ? 'guardado' : 'guardados'}
                   </span>
                 </div>
               </div>
 
-              {/* Botón de cierre ergonómico */}
+              {/* Botón de cierre */}
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white hover:bg-red-50 text-[#1A1A1A] hover:text-red-600 border-2 border-[#1A1A1A] flex items-center justify-center shadow-[1.5px_1.5px_0px_#1A1A1A] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer shrink-0"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 title="Cerrar cuaderno"
                 aria-label="Cerrar cuaderno"
               >
-                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

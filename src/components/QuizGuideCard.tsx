@@ -35,66 +35,66 @@ Consejo para responder: ${data.studyTip}
   };
 
   return (
-    <div className="neo-card bg-white p-5 sm:p-6 rounded-2xl border-[3px] border-[#1A1A1A] shadow-[6px_6px_0px_#1A1A1A] space-y-5">
+    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
       {/* Cabecera */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#1A1A1A] pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#D5AAFF] border-2 border-[#1A1A1A] flex items-center justify-center shadow-[2px_2px_0px_#1A1A1A]">
-            <HelpCircle className="w-5 h-5 text-[#1A1A1A]" />
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-700">
+            <HelpCircle className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-black text-[#1A1A1A] flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
               <span>Guía de Taller & Preguntas de Examen</span>
-              <span className="text-[10px] font-black bg-[#D5AAFF] px-2 py-0.5 rounded-full border border-[#1A1A1A]">
+              <span className="text-[10px] font-semibold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">
                 Orientación
               </span>
             </h3>
-            <p className="text-xs font-bold text-[#1A1A1A]/70">{data.topic}</p>
+            <p className="text-xs text-slate-500 font-medium">{data.topic}</p>
           </div>
         </div>
 
         <button
           onClick={handleCopy}
-          className="neo-btn flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF7EE] hover:bg-[#FFE66D] text-[#1A1A1A] rounded-xl text-xs font-bold cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 cursor-pointer transition-colors"
           title="Copiar guía"
         >
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
           <span>{copied ? '¡Copiado!' : 'Copiar guía'}</span>
         </button>
       </div>
 
       {/* Preguntas con pistas y respuestas orientadoras */}
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {data.questions.map((item, index) => (
           <div
             key={index}
-            className="p-4 bg-[#FAF7EE] rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] space-y-2.5"
+            className="p-4 bg-slate-50/70 rounded-xl border border-slate-200 space-y-2.5"
           >
-            <div className="flex items-start gap-2">
-              <span className="w-6 h-6 rounded-md bg-[#1A1A1A] text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
+            <div className="flex items-start gap-2.5">
+              <span className="w-5 h-5 rounded-md bg-purple-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                 {index + 1}
               </span>
-              <h4 className="text-xs sm:text-sm font-black text-[#1A1A1A]">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
                 {item.questionOrConcept}
               </h4>
             </div>
 
             {/* Pista orientadora */}
-            <div className="ml-8 p-2.5 bg-white rounded-lg border border-[#1A1A1A] text-xs space-y-1">
+            <div className="ml-7 p-3 bg-white rounded-lg border border-slate-200 text-xs space-y-1">
               <span className="font-bold text-amber-900 block flex items-center gap-1">
-                <Lightbulb className="w-3.5 h-3.5" />
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
                 <span>Pista del tutor para pensar tu respuesta:</span>
               </span>
-              <p className="text-[#1A1A1A]/85 italic">{item.guideHint}</p>
+              <p className="text-slate-600 italic leading-relaxed">{item.guideHint}</p>
             </div>
 
             {/* Respuesta modelo o fundamentada */}
-            <div className="ml-8 p-2.5 bg-[#A8E6CF]/30 rounded-lg border border-[#1A1A1A] text-xs space-y-1">
-              <span className="font-bold text-emerald-950 block flex items-center gap-1">
-                <MessageSquareQuote className="w-3.5 h-3.5" />
+            <div className="ml-7 p-3 bg-emerald-50/50 rounded-lg border border-emerald-200 text-xs space-y-1">
+              <span className="font-bold text-emerald-900 block flex items-center gap-1">
+                <MessageSquareQuote className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Respuesta modelo sugerida:</span>
               </span>
-              <p className="text-[#1A1A1A] font-medium leading-relaxed">
+              <p className="text-slate-800 font-normal leading-relaxed">
                 {item.sampleAnswerOrThought}
               </p>
             </div>
@@ -103,12 +103,12 @@ Consejo para responder: ${data.studyTip}
       </div>
 
       {/* Consejo de Estudio */}
-      <div className="p-3 bg-[#FFE66D] rounded-xl border-2 border-[#1A1A1A] text-xs space-y-1">
-        <span className="font-black text-[#1A1A1A] flex items-center gap-1.5">
-          <Lightbulb className="w-3.5 h-3.5" />
+      <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs space-y-1">
+        <span className="font-bold text-amber-900 flex items-center gap-1.5">
+          <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
           <span>Cómo responder con éxito en tu examen:</span>
         </span>
-        <p className="text-[#1A1A1A]/90 font-medium">{data.studyTip}</p>
+        <p className="text-slate-800 font-medium">{data.studyTip}</p>
       </div>
     </div>
   );

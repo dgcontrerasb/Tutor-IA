@@ -98,55 +98,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       </div>
 
       {/* Barra de cabecera de resultados en pantalla con acciones del estudiante */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[4px_4px_0px_#1A1A1A]">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl">🎓</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xl shrink-0">
+            🎓
+          </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black text-[#1A1A1A]">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">
               Resultado de la Revisión Escolar
             </h2>
-            <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold text-[#1A1A1A]/70">
-              <span>Revisado a las {result.timestamp}</span>
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-500 mt-0.5">
+              <span>{result.timestamp}</span>
               {result.processingTimeMs && <span>• {(result.processingTimeMs / 1000).toFixed(1)}s</span>}
-              <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-300 flex items-center gap-1 font-black">
+              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1 font-semibold text-[11px]">
                 <BookmarkCheck className="w-3 h-3 text-emerald-600" />
-                Guardado en tu cuaderno local
+                Guardado en Mi Cuaderno
               </span>
-              <span
-                className={`px-2 py-0.5 rounded-full border border-[#1A1A1A] text-[10px] font-black uppercase flex items-center gap-1 shadow-[1px_1px_0px_#1A1A1A] ${
-                  result.responseDepth === 'detailed'
-                    ? 'bg-[#A8E6CF] text-[#1A1A1A]'
-                    : 'bg-[#FFE66D] text-[#1A1A1A]'
-                }`}
-              >
+              <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-700">
                 {result.responseDepth === 'detailed' ? '📚 Modo Detallado' : '⚡ Modo Resumido'}
               </span>
-              {/* Badge Neobrutalista de Motor / Fuente Activa (Exclusivo Auditoría Admin) */}
-              {(currentUser?.role === 'admin' ||
-                currentUser?.email?.toLowerCase() === 'dgcontrerasb@gmail.com') && (
-                <>
-                  {result.provider === 'wikipedia' && (
-                    <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#A0E7E5] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                      📚 Fuente: Wikipedia REST (0 tokens)
-                    </span>
-                  )}
-                  {result.provider === 'groq' && (
-                    <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#D9F99D] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                      ⚡ Motor: Groq IA (openai/gpt-oss-120b)
-                    </span>
-                  )}
-                  {result.provider === 'pollinations' && (
-                    <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#F5D0FE] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                      🌐 Respaldo: Pollinations AI
-                    </span>
-                  )}
-                  {result.provider === 'local' && (
-                    <span className="px-2.5 py-0.5 rounded-lg border-2 border-[#1A1A1A] bg-[#FFE66D] text-[#1A1A1A] text-[10px] sm:text-[11px] font-black shadow-[2px_2px_0px_#1A1A1A] inline-flex items-center gap-1">
-                      📓 Glosario Escolar Local
-                    </span>
-                  )}
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -156,17 +126,17 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <button
             type="button"
             onClick={onCopyNotes}
-            className={`neo-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all border ${
               copiedSuccess
-                ? 'bg-[#A8E6CF] text-emerald-950'
-                : 'bg-[#FAF7EE] hover:bg-[#FFE66D] text-[#1A1A1A]'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
             }`}
             title="Copiar apunte escolar al portapapeles"
           >
             {copiedSuccess ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-900" />
-                <span>¡Copiado! ✓</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span>¡Copiado!</span>
               </>
             ) : (
               <>
@@ -180,11 +150,11 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <button
             type="button"
             onClick={onPrint}
-            className="neo-btn flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF7EE] hover:bg-[#A0E7E5] text-[#1A1A1A] rounded-xl text-xs font-bold cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
             title="Descargar en PDF o copiar ficha de estudio"
           >
             <FileDown className="w-3.5 h-3.5" />
-            <span>Descargar en PDF</span>
+            <span>Descargar PDF</span>
           </button>
         </div>
       </div>
@@ -195,29 +165,29 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`neo-btn px-3 py-1.5 rounded-xl text-xs font-black shrink-0 cursor-pointer flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-all border ${
               activeTab === 'all'
-                ? 'bg-[#1A1A1A] text-white shadow-[2px_2px_0px_#FFE66D]'
-                : 'bg-white text-[#1A1A1A] hover:bg-[#FAF7EE] shadow-[2px_2px_0px_#1A1A1A]'
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
             <span>Ver Todo Completo</span>
           </button>
 
-          {availableTabs.map((tab) => (
+          {availableTabs.map((t) => (
             <button
-              key={tab.key}
+              key={t.key}
               type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`neo-btn px-3 py-1.5 rounded-xl text-xs font-black shrink-0 cursor-pointer flex items-center gap-1.5 transition-all ${
-                activeTab === tab.key
-                  ? 'bg-[#FFE66D] text-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]'
-                  : 'bg-white text-[#1A1A1A] hover:bg-[#FAF7EE] shadow-[2px_2px_0px_#1A1A1A]'
+              onClick={() => setActiveTab(t.key)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-all border ${
+                activeTab === t.key
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                  : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
               }`}
             >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span>{t.icon}</span>
+              <span>{t.label}</span>
             </button>
           ))}
         </div>

@@ -3,6 +3,78 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+/**
+ * Blindaje universal contra DOMException "removeChild", "insertBefore" y "replaceChild":
+ * Evita que Google Translate, extensiones del navegador o mutaciones externas
+ * que alteran parentNode quiebren el reconciliador de React al desmontar o re-renderizar nodos.
+ */
+if (typeof Node === 'function' && Node.prototype) {
+  const originalRemoveChild = Node.prototype.removeChild;
+  Node.prototype.removeChild = function <T extends Node>(child: T): T {
+    try {
+      if (!child) return child;
+      if (child.parentNode !== this) {
+        if (child.parentNode) {
+          try {
+            return child.parentNode.removeChild(child) as T;
+          } catch {
+            return child;
+          }
+        }
+        return child;
+      }
+      return originalRemoveChild.call(this, child) as T;
+    } catch (err) {
+      try {
+        if (child && child.parentNode) {
+          return child.parentNode.removeChild(child) as T;
+        }
+      } catch {}
+      return child;
+    }
+  };
+
+  const originalInsertBefore = Node.prototype.insertBefore;
+  Node.prototype.insertBefore = function <T extends Node>(newNode: T, referenceNode: Node | null): T {
+    try {
+      if (!newNode) return newNode;
+      if (referenceNode && referenceNode.parentNode !== this) {
+        if (referenceNode.parentNode) {
+          try {
+            return referenceNode.parentNode.insertBefore(newNode, referenceNode) as T;
+          } catch {
+            return newNode;
+          }
+        }
+        return newNode;
+      }
+      return originalInsertBefore.call(this, newNode, referenceNode) as T;
+    } catch (err) {
+      return newNode;
+    }
+  };
+
+  const originalReplaceChild = Node.prototype.replaceChild;
+  Node.prototype.replaceChild = function <T extends Node>(newChild: Node, oldChild: T): T {
+    try {
+      if (!newChild || !oldChild) return oldChild;
+      if (oldChild.parentNode !== this) {
+        if (oldChild.parentNode) {
+          try {
+            return oldChild.parentNode.replaceChild(newChild, oldChild) as T;
+          } catch {
+            return oldChild;
+          }
+        }
+        return oldChild;
+      }
+      return originalReplaceChild.call(this, newChild, oldChild) as T;
+    } catch (err) {
+      return oldChild;
+    }
+  };
+}
+
 interface Props {
   children: ReactNode;
 }

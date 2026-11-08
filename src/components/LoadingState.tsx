@@ -28,34 +28,34 @@ export const LoadingState: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full my-6 bg-white rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-6 sm:p-8 text-center relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="w-full my-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 text-center relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       {/* Animación central lúdica */}
-      <div className="relative inline-flex items-center justify-center mb-4">
-        <div className="w-14 h-14 rounded-2xl bg-[#FDE047] border-[2.5px] border-[#181829] shadow-[3px_3px_0px_#181829] flex items-center justify-center animate-bounce">
-          <Edit3 className="w-7 h-7 text-[#181829]" />
+      <div className="relative inline-flex items-center justify-center mb-3">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center animate-bounce text-indigo-600">
+          <Edit3 className="w-6 h-6" />
         </div>
-        <div className="absolute -top-1 -right-2 text-xl animate-spin" style={{ animationDuration: '3s' }}>
+        <div className="absolute -top-1 -right-1 text-base animate-spin text-amber-400" style={{ animationDuration: '3s' }}>
           ✨
         </div>
       </div>
 
       {/* Mensaje rotativo */}
-      <h3 className="text-base sm:text-lg font-black text-[#181829] mb-1.5 min-h-[28px] transition-all duration-300">
+      <h3 className="text-sm sm:text-base font-bold text-slate-800 mb-1 min-h-[24px] transition-all duration-300">
         {SCHOOL_LOADING_MESSAGES[messageIndex]}
       </h3>
 
-      <p className="text-xs font-semibold text-[#181829]/70 max-w-md mx-auto">
+      <p className="text-xs text-slate-500 max-w-md mx-auto">
         Tutor-IA está preparando una explicación pedagógica clara, fundamentada y motivadora.
       </p>
 
-      {/* Barra de progreso animada Neo-Pop */}
-      <div className="mt-4 max-w-xs mx-auto h-3 bg-[#F3F5FA] rounded-full border-2 border-[#181829] overflow-hidden p-0.5">
-        <div className="h-full bg-gradient-to-r from-[#FDE047] via-[#38BDF8] to-[#34D399] rounded-full animate-pulse w-full"></div>
+      {/* Barra de progreso animada Bento */}
+      <div className="mt-4 max-w-xs mx-auto h-2 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
+        <div className="h-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 rounded-full animate-pulse w-full"></div>
       </div>
 
-      <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#181829]/60">
+      <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
         <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-        <span>Respuestas paso a paso sin costo por Groq Cloud</span>
+        <span>Resolviendo con pedagogía inteligente</span>
       </div>
     </div>
   );

@@ -171,5 +171,8 @@ export interface UserUsage {
   subscriptionDaysRemaining?: number;
   subscriptionExpiresAt?: string | null;
   isDailyLimit?: boolean;
+  isTrialActive?: boolean;
+  trialHoursRemaining?: number;
+  trialExpiresAt?: string | null;
 }
 

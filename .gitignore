@@ -109,6 +109,8 @@ cypress/screenshots/
 *.dump
 *.bak
 *.backup
+server/data/*.json
+!server/data/.gitkeep
 
 # ----------------------------------------------------------------------------
 # 9. EDITORES, IDES Y ASISTENTES

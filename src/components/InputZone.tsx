@@ -176,85 +176,80 @@ export const InputZone: React.FC<InputZoneProps> = ({
   const shouldDisplayMediaDropzone = isMediaRelevant || forceShowMediaUpload || Boolean(imageFile);
 
   return (
-    <div className="space-y-4">
-      {/* 1. Área de texto amplia con insignia PASO 2 */}
-      <div className="relative bg-white rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[4px_4px_0px_#1A1A1A] p-4">
-        {/* Cabecera del área de texto */}
-        <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-xl bg-[#A0E7E5] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] text-xs font-black text-[#1A1A1A] shrink-0">
-              PASO 2
-            </span>
-            <label htmlFor="homework-text" className="text-sm sm:text-base font-black text-[#1A1A1A] cursor-pointer">
-              Escribe tu tarea o pregunta aquí:
-            </label>
-          </div>
+    <div className="space-y-3">
+      {/* 1. Área de texto principal moderna estilo AI Workspace */}
+      <div className="relative bg-white rounded-2xl border border-slate-200/90 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all p-3 sm:p-4">
+        {/* Textarea */}
+        <textarea
+          id="homework-text"
+          value={text}
+          onChange={(e) => onTextChange(e.target.value)}
+          disabled={disabled}
+          placeholder={placeholder || "Escribe tu pregunta escolar, ejercicio o pega el texto que quieres que revisemos..."}
+          rows={4}
+          className="w-full text-sm sm:text-base text-slate-800 placeholder-slate-400 bg-transparent outline-none resize-y leading-relaxed font-normal"
+        />
 
+        {/* Barra inferior integrada en la tarjeta (Prompt-First) */}
+        <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
-            {/* Conmutador lúdico de hoja rayada vs hoja limpia */}
+            {/* Botón rápido para adjuntar foto / cuaderno */}
             <button
               type="button"
-              onClick={() => setUseNotebookLines((prev) => !prev)}
-              className="px-2.5 py-1 rounded-lg bg-[#FAF7EE] hover:bg-[#FFE66D] border border-[#1A1A1A] text-[11px] font-black text-[#1A1A1A] cursor-pointer transition-colors"
-              title="Cambiar estilo de hoja de cuaderno"
+              onClick={() => {
+                if (!shouldDisplayMediaDropzone) setForceShowMediaUpload(true);
+                fileInputRef.current?.click();
+              }}
+              disabled={disabled || photoUsage.remaining <= 0}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
+                imageFile
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+              title="Subir foto de tu cuaderno o ejercicio"
             >
-              {useNotebookLines ? '📓 Hoja rayada' : '📄 Hoja limpia'}
+              <UploadCloud className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{imageFile ? 'Foto adjuntada' : 'Adjuntar Foto / Cuaderno'}</span>
             </button>
+
+            <span className="text-[11px] font-medium text-slate-400 hidden sm:inline">
+              {photoUsage.remaining > 0 ? `(${photoUsage.remaining} fotos/día)` : '(Límite fotos alcanzado)'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+            <span>{wordCount} palabras</span>
+            <span>·</span>
+            <span>{charCount} caracteres</span>
 
             {text && (
               <button
                 type="button"
                 onClick={handleClearText}
                 disabled={disabled}
-                className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 border border-red-300 text-xs font-black text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                className="ml-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
                 title="Borrar texto"
               >
-                <X className="w-3.5 h-3.5" />
-                <span>Borrar</span>
+                Limpiar
               </button>
             )}
           </div>
-        </div>
-
-        {/* Textarea con efecto de líneas escolares opcional */}
-        <textarea
-          id="homework-text"
-          value={text}
-          onChange={(e) => onTextChange(e.target.value)}
-          disabled={disabled}
-          placeholder={placeholder || "Escribe tu redacción, cuento, deberes o pega el texto que quieres revisar..."}
-          rows={5}
-          className={`w-full p-3.5 text-sm sm:text-base font-medium text-[#1A1A1A] placeholder:text-[#1A1A1A]/40 bg-[#FAF7EE]/60 rounded-xl border-2 border-[#1A1A1A] focus:outline-hidden focus:ring-2 focus:ring-[#FFE66D] resize-y ${
-            useNotebookLines ? 'cuaderno-lines' : ''
-          }`}
-        />
-
-        {/* Barra inferior: contador limpio */}
-        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-[#1A1A1A]/70">
-          <div className="flex items-center gap-2 tabular-nums">
-            <span>{wordCount} {wordCount === 1 ? 'palabra' : 'palabras'}</span>
-            <span aria-hidden="true">·</span>
-            <span>{charCount} caracteres</span>
-          </div>
-          <span className="text-[11px] text-[#1A1A1A]/65">
-            💡 También puedes adjuntar una foto de tu cuaderno abajo
-          </span>
         </div>
       </div>
 
       {/* 2. Caja drag-and-drop inteligente para Foto o PDF (se muestra activamente solo si la tarea requiere archivo) */}
       {!shouldDisplayMediaDropzone ? (
         /* Aviso pedagógico cuando la materia o tarea es teórica (ej: lengua, historia, etc.) */
-        <div className="bg-[#FAF7EE] rounded-2xl border-[2px] border-[#1A1A1A] p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 text-xs text-[#1A1A1A]/90">
-            <div className="w-7 h-7 rounded-lg bg-[#FFE66D] border border-[#1A1A1A] flex items-center justify-center shrink-0 font-black">
+        <div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5 text-xs text-slate-700">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0 font-semibold shadow-2xs">
               💡
             </div>
             <div>
-              <p className="font-bold text-[#1A1A1A]">
+              <p className="font-semibold text-slate-800">
                 En materias teóricas, tu tutor responde al instante analizando el texto escrito o pegado arriba.
               </p>
-              <p className="text-[11px] text-[#1A1A1A]/70">
+              <p className="text-[11px] text-slate-500">
                 La subida de fotos y PDF está optimizada para ejercicios de matemáticas, ciencias, diagramas y figuras geométricas.
               </p>
             </div>
@@ -262,26 +257,26 @@ export const InputZone: React.FC<InputZoneProps> = ({
           <button
             type="button"
             onClick={() => setForceShowMediaUpload(true)}
-            className="neo-btn px-3 py-1.5 bg-white hover:bg-[#FFE66D] text-xs font-bold text-[#1A1A1A] rounded-xl shrink-0 cursor-pointer flex items-center gap-1"
+            className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200 rounded-xl shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs transition-colors"
           >
-            <ImageIcon className="w-3.5 h-3.5" />
+            <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
             <span>Adjuntar Foto o PDF de todos modos</span>
           </button>
         </div>
       ) : (
-        /* Dropzone completa para Foto o Archivo PDF */
-        <div className="relative bg-white rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[4px_4px_0px_#1A1A1A] p-4">
+        /* Dropzone completa para Foto o Archivo PDF adaptada al Bento Grid */
+        <div className="relative bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 sm:p-5">
           {/* Mensaje de error de archivo si ocurre */}
           {fileErrorMessage && (
-            <div className="mb-3 p-2.5 bg-[#FF8B94] rounded-xl border-2 border-[#1A1A1A] flex items-center justify-between gap-2 text-xs font-black text-[#1A1A1A] animate-in fade-in">
-              <div className="flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 text-red-950 shrink-0" />
+            <div className="mb-3.5 p-3 bg-rose-50 rounded-xl border border-rose-200 flex items-center justify-between gap-2 text-xs font-semibold text-rose-800 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{fileErrorMessage}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setFileErrorMessage(null)}
-                className="p-1 hover:bg-black/10 rounded cursor-pointer"
+                className="p-1 hover:bg-rose-100 rounded-lg text-rose-700 cursor-pointer transition-colors"
                 title="Cerrar aviso"
               >
                 <X className="w-3.5 h-3.5" />
@@ -289,22 +284,22 @@ export const InputZone: React.FC<InputZoneProps> = ({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-[#A0E7E5] border-2 border-[#1A1A1A] shadow-[1.5px_1.5px_0px_#1A1A1A] flex items-center justify-center">
-                <ImageIcon className="w-4 h-4 text-[#1A1A1A]" />
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-indigo-600 shadow-2xs">
+                <ImageIcon className="w-4 h-4" />
               </div>
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#1A1A1A]">
-                2. Sube una foto de tu cuaderno o documento PDF:
+              <span className="text-xs sm:text-sm font-bold text-slate-800">
+                Sube una foto de tu cuaderno o documento PDF:
               </span>
             </div>
 
             {/* Badge del límite diario de 5 fotos/PDFs */}
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 border-[#1A1A1A] text-xs font-black shadow-[1.5px_1.5px_0px_#1A1A1A] ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-semibold shadow-2xs ${
                 photoUsage.remaining > 0
-                  ? 'bg-[#A8E6CF] text-emerald-950'
-                  : 'bg-[#FF8B94] text-red-950'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80'
+                  : 'bg-rose-50 text-rose-800 border-rose-200/80'
               }`}
             >
               <span>📷 📄 {photoUsage.remaining} de {photoUsage.max} fotos/PDFs disponibles hoy</span>
@@ -323,10 +318,10 @@ export const InputZone: React.FC<InputZoneProps> = ({
           />
 
           {isCompressing ? (
-            <div className="border-2 border-dashed border-[#1A1A1A] rounded-xl p-6 text-center bg-[#FAF7EE] flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-8 h-8 text-[#1A1A1A] animate-spin" />
-              <p className="text-sm font-bold text-[#1A1A1A]">Optimizando imagen de cuaderno...</p>
-              <p className="text-xs font-medium text-[#1A1A1A]/70">Ajustando resolución para respuesta ultrasónica</p>
+            <div className="border border-dashed border-indigo-300 rounded-2xl p-7 text-center bg-indigo-50/40 flex flex-col items-center justify-center gap-2">
+              <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+              <p className="text-sm font-bold text-slate-800">Optimizando imagen de cuaderno...</p>
+              <p className="text-xs text-slate-500">Ajustando resolución para respuesta ultrasónica</p>
             </div>
           ) : !imageFile ? (
             /* Zona de arrastrar y soltar vacía */
@@ -344,49 +339,49 @@ export const InputZone: React.FC<InputZoneProps> = ({
                 }
                 fileInputRef.current?.click();
               }}
-              className={`border-2 border-dashed rounded-xl p-5 sm:p-6 text-center cursor-pointer transition-all ${
+              className={`border-2 border-dashed rounded-2xl p-6 sm:p-7 text-center cursor-pointer transition-all ${
                 photoUsage.remaining <= 0
-                  ? 'border-red-300 bg-red-50/50 cursor-not-allowed opacity-80'
+                  ? 'border-rose-200 bg-rose-50/40 cursor-not-allowed opacity-80'
                   : isDragging
-                  ? 'border-[#1A1A1A] bg-[#FFE66D]/40 scale-[1.01]'
-                  : 'border-[#1A1A1A]/60 bg-[#FAF7EE]/60 hover:bg-[#FAF7EE] hover:border-[#1A1A1A]'
+                  ? 'border-indigo-500 bg-indigo-50/60 scale-[1.01]'
+                  : 'border-slate-300/80 bg-slate-50/50 hover:bg-slate-50 hover:border-indigo-400'
               }`}
             >
               {photoUsage.remaining <= 0 ? (
                 <div className="py-2">
-                  <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-                  <p className="text-xs sm:text-sm font-bold text-red-900 mb-1">
+                  <AlertCircle className="w-8 h-8 text-rose-600 mx-auto mb-2" />
+                  <p className="text-xs sm:text-sm font-bold text-rose-900 mb-1">
                     Has agotado tus 5 fotos o archivos PDF por el día de hoy
                   </p>
-                  <p className="text-xs text-[#1A1A1A]/70">
+                  <p className="text-xs text-slate-500">
                     Las consultas de texto e interrogatorio continuo siguen 100% ilimitadas.
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="mx-auto w-12 h-12 rounded-xl bg-white border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] flex items-center justify-center mb-2.5">
-                    <UploadCloud className="w-6 h-6 text-[#1A1A1A]" />
+                  <div className="mx-auto w-12 h-12 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center mb-3 text-indigo-600">
+                    <UploadCloud className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-black text-[#1A1A1A] mb-1">
+                  <p className="text-sm font-bold text-slate-800 mb-1">
                     Arrastra aquí la foto de tu cuaderno o taller en PDF (máx. 1 archivo por envío)
                   </p>
-                  <p className="text-xs font-medium text-[#1A1A1A]/70">
-                    Formatos: PNG, JPG, WEBP o PDF • Lee manuscritos e impresos
+                  <p className="text-xs text-slate-500">
+                    Formatos: PNG, JPG, WEBP o PDF • Reconoce manuscritos e impresos
                   </p>
                 </>
               )}
             </div>
           ) : (
             /* Vista previa de la imagen o archivo PDF cargado */
-            <div className="bg-[#FAF7EE] rounded-xl border-2 border-[#1A1A1A] p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 {isPdf ? (
-                  <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] bg-[#FF8B94] flex flex-col items-center justify-center text-[#1A1A1A]">
+                  <div className="shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-xl border border-rose-200 shadow-2xs bg-rose-50 flex flex-col items-center justify-center text-rose-600">
                     <FileType className="w-7 h-7" />
-                    <span className="text-[10px] font-black uppercase mt-0.5">PDF</span>
+                    <span className="text-[10px] font-bold uppercase mt-0.5">PDF</span>
                   </div>
                 ) : imagePreviewUrl ? (
-                  <div className="relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] overflow-hidden bg-white">
+                  <div className="relative shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-xl border border-slate-200 shadow-2xs overflow-hidden bg-white">
                     <img
                       src={imagePreviewUrl}
                       alt="Vista previa de tarea"
@@ -394,25 +389,25 @@ export const InputZone: React.FC<InputZoneProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-lg border-2 border-[#1A1A1A] bg-white flex items-center justify-center">
-                    <ImageIcon className="w-6 h-6 text-gray-500" />
+                  <div className="w-16 h-16 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-400">
+                    <ImageIcon className="w-6 h-6" />
                   </div>
                 )}
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-black text-emerald-800 bg-[#A8E6CF] px-1.5 py-0.2 rounded border border-[#1A1A1A] flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-900" />
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                       {isPdf ? 'Documento PDF listo' : 'Foto lista (Optimizada)'}
                     </span>
-                    <span className="text-[10px] font-bold text-gray-600 hidden xs:inline">
+                    <span className="text-[10px] text-slate-400 hidden xs:inline">
                       (1 de 1 por envío)
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-[#1A1A1A] truncate mt-1">
+                  <p className="text-xs sm:text-sm font-bold text-slate-800 truncate mt-1">
                     {imageFile.name}
                   </p>
-                  <p className="text-[11px] font-medium text-[#1A1A1A]/70">
+                  <p className="text-[11px] text-slate-500">
                     {formatFileSize(imageFile.size)} • {isPdf ? 'Documento PDF escolar' : 'JPEG Comprimido'}
                   </p>
                 </div>
@@ -423,7 +418,7 @@ export const InputZone: React.FC<InputZoneProps> = ({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled}
-                  className="neo-btn px-3 py-1.5 bg-white text-[#1A1A1A] text-xs font-bold rounded-xl cursor-pointer"
+                  className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 shadow-2xs cursor-pointer transition-all active:scale-95"
                 >
                   Cambiar
                 </button>
@@ -431,7 +426,7 @@ export const InputZone: React.FC<InputZoneProps> = ({
                   type="button"
                   onClick={handleRemoveImage}
                   disabled={disabled}
-                  className="neo-btn px-3 py-1.5 bg-[#FF8B94] hover:bg-[#ff7580] text-[#1A1A1A] text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1"
+                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200 shadow-2xs cursor-pointer flex items-center gap-1 transition-all active:scale-95"
                   title="Quitar archivo"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

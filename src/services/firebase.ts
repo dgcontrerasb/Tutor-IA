@@ -81,13 +81,14 @@ googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-// Base de datos Firestore (usa la base por defecto '(default)' a menos que se defina un ID explícito válido)
-export const db =
-  isFirebaseConfigured &&
-  firebaseConfig.firestoreDatabaseId &&
-  !firebaseConfig.firestoreDatabaseId.startsWith('ai-studio-')
-    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-    : getFirestore(app);
+// Base de datos Firestore oficial del proyecto
+const activeDatabaseId =
+  firebaseConfig.firestoreDatabaseId ||
+  'ai-studio-cuadernopopcorre-70ac83cd-2b9b-4137-8e83-77ac001e7e70';
+
+export const db = isFirebaseConfigured
+  ? getFirestore(app, activeDatabaseId)
+  : getFirestore(app);
 
 export interface UserProfile {
   uid: string;
@@ -98,7 +99,9 @@ export interface UserProfile {
   isSubscriptionActive: boolean;
   subscriptionDaysRemaining: number;
   subscriptionExpiresAt?: string | null;
-  // Prueba gratuita de nuevo usuario (3 usos únicos)
+  // 1 Día Completo de Prueba Gratuita (24 horas desde el registro)
+  trialStartedAt?: string | null;
+  trialExpiresAt?: string | null;
   usagesUsed: number;
   maxUsages: number;
   // Suscripción activa (10 consultas diarias)
@@ -110,7 +113,7 @@ export interface UserProfile {
 }
 
 const ADMIN_EMAIL = 'dgcontrerasb@gmail.com';
-export const TRIAL_MAX_USAGES = 3;
+export const TRIAL_MAX_USAGES = 999; // Consultas ilimitadas durante el día de prueba
 export const SUBSCRIBER_DAILY_MAX_USAGES = 10;
 
 // Tiempo de vida de la caché local del perfil (12 horas)
@@ -121,7 +124,7 @@ const PROFILE_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
  * Obtiene la clave de almacenamiento local para un perfil
  */
 function getProfileStorageKey(uid: string): string {
-  return `cuaderno_profile_${uid}`;
+  return `tutor_ia_profile_${uid}`;
 }
 
 /**
@@ -129,7 +132,11 @@ function getProfileStorageKey(uid: string): string {
  */
 export function getCachedUserProfile(uid: string): UserProfile | null {
   try {
-    const raw = localStorage.getItem(getProfileStorageKey(uid));
+    let raw = localStorage.getItem(getProfileStorageKey(uid));
+    if (!raw) {
+      // Compatibilidad con perfiles previos
+      raw = localStorage.getItem(`cuaderno_profile_${uid}`);
+    }
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.profile || typeof parsed.cachedAt !== 'number') return null;
@@ -169,6 +176,15 @@ export function setCachedUserProfile(profile: UserProfile): void {
         cachedAt: Date.now(),
       })
     );
+
+    // Mantener también el registro local para el panel de administración
+    try {
+      const LOCAL_USERS_KEY = 'tutor_ia_local_registered_users';
+      const raw = localStorage.getItem(LOCAL_USERS_KEY);
+      const list: UserProfile[] = raw ? JSON.parse(raw) : [];
+      const updated = [profile, ...list.filter((u) => u.uid !== profile.uid && u.email?.toLowerCase() !== profile.email?.toLowerCase())];
+      localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(updated.slice(0, 100)));
+    } catch {}
   } catch {
     // Si localStorage está restringido o lleno, continuar normalmente
   }
@@ -181,9 +197,10 @@ export function clearCachedUserProfile(uid?: string): void {
   try {
     if (uid) {
       localStorage.removeItem(getProfileStorageKey(uid));
+      localStorage.removeItem(`cuaderno_profile_${uid}`);
     } else {
       Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('cuaderno_profile_')) {
+        if (key.startsWith('tutor_ia_profile_') || key.startsWith('cuaderno_profile_')) {
           localStorage.removeItem(key);
         }
       });
@@ -220,15 +237,17 @@ export function getUserUsageFromProfile(profile: UserProfile | null): import('..
   if (!profile) {
     return {
       usagesUsed: 0,
-      maxUsages: TRIAL_MAX_USAGES,
-      remainingUsages: TRIAL_MAX_USAGES,
+      maxUsages: 999,
+      remainingUsages: 999,
       isSubscriptionActive: false,
       subscriptionDaysRemaining: 0,
       isDailyLimit: false,
+      isTrialActive: false,
+      trialHoursRemaining: 0,
     };
   }
 
-  // Admin tiene acceso ilimitado
+  // 1. Admin siempre tiene acceso ilimitado
   if (profile.role === 'admin' || profile.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
     return {
       usagesUsed: 0,
@@ -237,10 +256,12 @@ export function getUserUsageFromProfile(profile: UserProfile | null): import('..
       isSubscriptionActive: true,
       subscriptionDaysRemaining: 365,
       isDailyLimit: false,
+      isTrialActive: false,
+      trialHoursRemaining: 0,
     };
   }
 
-  // Usuario con suscripción activa: acceso ilimitado durante sus 30 días
+  // 2. Usuario con suscripción activa: acceso ilimitado durante sus 30 días
   if (profile.isSubscriptionActive) {
     const daysRemaining = calculateDaysRemaining(profile.subscriptionExpiresAt);
     return {
@@ -251,18 +272,51 @@ export function getUserUsageFromProfile(profile: UserProfile | null): import('..
       subscriptionDaysRemaining: daysRemaining,
       subscriptionExpiresAt: profile.subscriptionExpiresAt,
       isDailyLimit: false,
+      isTrialActive: false,
+      trialHoursRemaining: 0,
     };
   }
 
-  // Usuario en prueba gratuita: 3 usos únicos que no se renuevan
-  const used = Math.min(TRIAL_MAX_USAGES, profile.usagesUsed || 0);
+  // 3. Usuario en su Día Completo de Prueba Gratuita (24 horas)
+  const now = Date.now();
+  let trialExpiresAtMs = profile.trialExpiresAt ? new Date(profile.trialExpiresAt).getTime() : 0;
+
+  // Si aún no tenía trialExpiresAt registrado, inicializar 24 horas desde su creación o desde ahora
+  if (!trialExpiresAtMs) {
+    const createdMs = profile.createdAt ? new Date(profile.createdAt).getTime() : now;
+    trialExpiresAtMs = createdMs + 24 * 60 * 60 * 1000;
+  }
+
+  const isTrialActive = trialExpiresAtMs > now;
+  const trialHoursRemaining = isTrialActive
+    ? Math.max(1, Math.ceil((trialExpiresAtMs - now) / (1000 * 60 * 60)))
+    : 0;
+
+  if (isTrialActive) {
+    return {
+      usagesUsed: profile.usagesUsed || 0,
+      maxUsages: 999,
+      remainingUsages: 999,
+      isSubscriptionActive: false,
+      subscriptionDaysRemaining: 0,
+      isDailyLimit: false,
+      isTrialActive: true,
+      trialHoursRemaining,
+      trialExpiresAt: new Date(trialExpiresAtMs).toISOString(),
+    };
+  }
+
+  // 4. Usuario con día de prueba vencido
   return {
-    usagesUsed: used,
-    maxUsages: TRIAL_MAX_USAGES,
-    remainingUsages: Math.max(0, TRIAL_MAX_USAGES - used),
+    usagesUsed: profile.usagesUsed || 0,
+    maxUsages: 0,
+    remainingUsages: 0,
     isSubscriptionActive: false,
     subscriptionDaysRemaining: 0,
     isDailyLimit: false,
+    isTrialActive: false,
+    trialHoursRemaining: 0,
+    trialExpiresAt: profile.trialExpiresAt,
   };
 }
 
@@ -349,6 +403,44 @@ export async function syncUserProfile(
         return existing;
       }
 
+      // Si es un usuario normal (ej: lisgeo2803@gmail.com o cualquier estudiante):
+      // Si anteriormente se le había asignado role admin por error, degradarlo a student
+      if (existing.role === 'admin' && !isAdmin) {
+        existing.role = 'student';
+        existing.isSubscriptionActive = false;
+        existing.subscriptionDaysRemaining = 0;
+        existing.maxUsages = TRIAL_MAX_USAGES;
+        await withTimeout(
+          updateDoc(userRef, {
+            role: 'student',
+            isSubscriptionActive: false,
+            subscriptionDaysRemaining: 0,
+            maxUsages: TRIAL_MAX_USAGES,
+          }),
+          2500
+        ).catch(() => {});
+      }
+
+      // Si es lisgeo2803@gmail.com específicamente para pruebas:
+      if (user.email?.toLowerCase().trim() === 'lisgeo2803@gmail.com') {
+        const daysRemaining = calculateDaysRemaining(existing.subscriptionExpiresAt);
+        if (existing.isSubscriptionActive && daysRemaining > 0) {
+          existing.subscriptionDaysRemaining = daysRemaining;
+          setCachedUserProfile(existing);
+          return existing;
+        }
+
+        // Si no tiene suscripción activa o ya venció, asegurar que quede como usuario que ya agotó sus 3 pruebas
+        existing.role = 'student';
+        existing.isSubscriptionActive = false;
+        existing.subscriptionDaysRemaining = 0;
+        existing.subscriptionExpiresAt = null;
+        existing.usagesUsed = TRIAL_MAX_USAGES; // 3 de 3 usados
+        existing.maxUsages = TRIAL_MAX_USAGES;
+        setCachedUserProfile(existing);
+        return existing;
+      }
+
       // Si tiene suscripción activa
       if (existing.isSubscriptionActive) {
         const daysRemaining = calculateDaysRemaining(existing.subscriptionExpiresAt);
@@ -386,6 +478,9 @@ export async function syncUserProfile(
     // Esquema ultracompacto para máxima eficiencia en la capa gratuita de Firestore (~200 bytes)
     const sanitizedPhotoURL = user.photoURL && user.photoURL.length <= 160 ? user.photoURL : undefined;
 
+    const nowIso = new Date().toISOString();
+    const trialExpiresIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
     const newProfile: UserProfile = {
       uid: user.uid,
       email: (user.email || '').toLowerCase().trim(),
@@ -393,27 +488,58 @@ export async function syncUserProfile(
       ...(sanitizedPhotoURL ? { photoURL: sanitizedPhotoURL } : {}),
       role: isAdmin ? 'admin' : 'student',
       isSubscriptionActive: isAdmin,
-      subscriptionDaysRemaining: isAdmin ? 365 : 30,
+      subscriptionDaysRemaining: isAdmin ? 365 : 0,
       subscriptionExpiresAt: null,
+      trialStartedAt: nowIso,
+      trialExpiresAt: isAdmin ? null : trialExpiresIso,
       usagesUsed: 0,
-      maxUsages: isAdmin ? 9999 : TRIAL_MAX_USAGES,
+      maxUsages: isAdmin ? 9999 : 999,
       dailyUsageDate: today,
       dailyUsagesUsed: 0,
       maxDailyUsages: isAdmin ? 9999 : SUBSCRIBER_DAILY_MAX_USAGES,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: nowIso,
+      updatedAt: nowIso,
     };
 
-    await withTimeout(setDoc(userRef, newProfile), 2500).catch((e) =>
+    await withTimeout(setDoc(userRef, newProfile), 5000).catch((e) =>
       console.warn('Aviso: No se pudo guardar en Firestore remoto (modo offline/resiliente):', e)
     );
     setCachedUserProfile(newProfile);
+    try {
+      fetch('/api/users/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProfile),
+        signal: AbortSignal.timeout(3000),
+      }).catch(() => {});
+    } catch {}
     return newProfile;
   } catch (error) {
     console.warn('Aviso: Firestore offline o no disponible aún. Utilizando perfil en memoria:', error);
     // En caso de problema de conexión o base de datos aún no creada en Firebase Console
     const fallbackCached = getCachedUserProfile(user.uid);
     if (fallbackCached) return fallbackCached;
+
+    if (user.email?.toLowerCase().trim() === 'lisgeo2803@gmail.com') {
+      const lisgeoProfile: UserProfile = {
+        uid: user.uid,
+        email: 'lisgeo2803@gmail.com',
+        displayName: user.displayName || 'Lisgeo',
+        role: 'student',
+        isSubscriptionActive: false,
+        subscriptionDaysRemaining: 0,
+        subscriptionExpiresAt: null,
+        usagesUsed: TRIAL_MAX_USAGES,
+        maxUsages: TRIAL_MAX_USAGES,
+        dailyUsageDate: today,
+        dailyUsagesUsed: 0,
+        maxDailyUsages: SUBSCRIBER_DAILY_MAX_USAGES,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setCachedUserProfile(lisgeoProfile);
+      return lisgeoProfile;
+    }
 
     const fallbackProfile: UserProfile = {
       uid: user.uid,
@@ -422,7 +548,7 @@ export async function syncUserProfile(
       photoURL: user.photoURL || undefined,
       role: isAdmin ? 'admin' : 'student',
       isSubscriptionActive: isAdmin,
-      subscriptionDaysRemaining: isAdmin ? 365 : 30,
+      subscriptionDaysRemaining: isAdmin ? 365 : 0,
       usagesUsed: 0,
       maxUsages: isAdmin ? 9999 : TRIAL_MAX_USAGES,
       createdAt: new Date().toISOString(),

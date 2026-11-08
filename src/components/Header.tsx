@@ -22,6 +22,7 @@ import { GradeLevel, SchoolSubjectId, UserUsage } from '../types';
 import { UserProfile, logout } from '../services/firebase';
 import { AuthBar, splitUserName } from './AuthBar';
 import { GradeLevelSwitch, SchoolMascot } from './SchoolMascot';
+import { getSubjectById } from '../data/schoolSubjects';
 
 export interface HeaderProps {
   gradeLevel: GradeLevel;
@@ -34,6 +35,8 @@ export interface HeaderProps {
   onOpenLegal?: (tab?: 'terms' | 'privacy' | 'support') => void;
   onRefreshProfile?: () => void;
   isSyncing?: boolean;
+  onGoHome?: () => void;
+  onLogout?: () => void;
 }
 
 /**
@@ -51,6 +54,8 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
   onOpenLegal,
   onRefreshProfile,
   isSyncing,
+  onGoHome,
+  onLogout,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -113,6 +118,10 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
 
   const handleLogoutClick = async () => {
     setMobileMenuOpen(false);
+    if (onLogout) {
+      onLogout();
+      return;
+    }
     try {
       await logout();
     } catch (e) {
@@ -125,55 +134,64 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
   }, [user]);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b-[2.5px] border-[#181829] shadow-[0_3px_0px_rgba(24,24,41,0.08)]">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
-        {/* Lado Izquierdo: Logotipo limpio y completo */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="neo-btn flex items-center gap-2 px-3 py-1.5 bg-[#FFE66D] hover:bg-[#fedd48] text-[#1A1A1A] rounded-xl text-xs sm:text-sm font-black cursor-pointer shadow-[2px_2px_0px_#1A1A1A] shrink-0 transition-transform active:scale-95"
-            title="Tutor-IA - Inicio"
-          >
-            <span className="text-sm sm:text-base">✏️</span>
-            <span className="tracking-tight font-extrabold whitespace-nowrap">
-              Tutor-IA
-            </span>
-          </button>
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-17 flex items-center justify-between gap-3">
+        {/* Lado Izquierdo: Logotipo Oficial Editorial (Estático, solo visual, no interactivo) */}
+        <div className="flex items-center shrink-0 select-none">
+          <img
+            src="/logo_full.jpg"
+            alt="Tutor-IA"
+            className="h-11 sm:h-12 w-auto object-contain pointer-events-none select-none"
+            draggable={false}
+          />
         </div>
 
-        {/* Lado Derecho - Escritorio (md y superior): Botones directos */}
-        <div className="hidden md:flex items-center justify-end gap-2 shrink-0">
-          {/* Panel de Administrador si aplica */}
-          {isAdmin && onOpenAdmin && (
+        {/* Centro - Botón de Administrador (si aplica) centrado para no interferir */}
+        {isAdmin && onOpenAdmin && (
+          <div className="hidden md:flex items-center justify-center flex-1">
             <button
               onClick={onOpenAdmin}
-              className="neo-btn flex items-center gap-1.5 px-3 py-1.5 bg-[#FFE66D] hover:bg-[#fedd48] text-[#1A1A1A] rounded-xl text-xs font-black cursor-pointer shadow-[2px_2px_0px_#1A1A1A] whitespace-nowrap shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/90 rounded-xl text-xs font-bold cursor-pointer transition-all shadow-2xs hover:scale-105"
               title="Panel de Control del Administrador"
             >
-              <Shield className="w-3.5 h-3.5 text-amber-900 shrink-0" />
+              <Shield className="w-4 h-4 text-amber-700 shrink-0" />
               <span>Panel Admin</span>
             </button>
-          )}
+          </div>
+        )}
 
-          {/* Badge de suscripción activa */}
-          {!isAdmin && isSubscriptionActive && (
-            <div
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#A8E6CF] rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] text-xs font-black text-[#1A1A1A] whitespace-nowrap shrink-0"
-              title={`Tu plan escolar tiene ${remainingDays} días activos`}
-            >
-              <span className="text-[11px] font-black">📅 {remainingDays} días activos</span>
-            </div>
-          )}
-
-          {/* Botón Activar Suscripción */}
-          {showActivatePaymentBtn && (
+        {/* Lado Derecho - Escritorio (md y superior): Botones directos */}
+        <div className="hidden md:flex items-center justify-end gap-2.5 shrink-0">
+          {/* Un solo botón inteligente de Plan Escolar / Días Restantes */}
+          {isSubscriptionActive ? (
             <button
               onClick={onOpenPayment}
-              className="neo-btn flex items-center gap-1 px-3 py-1.5 bg-[#FFE66D] hover:bg-[#fedd48] text-[#1A1A1A] rounded-xl text-xs font-black cursor-pointer shadow-[2px_2px_0px_#1A1A1A] whitespace-nowrap shrink-0"
-              title="Activar suscripción escolar"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition-all active:scale-95 group"
+              title="Clic para ver detalles de tu suscripción, renovar o canjear código"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-900 shrink-0" />
-              <span>Activar Plan</span>
+              <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
+              <span>{isAdmin ? '365 días (Admin)' : `${remainingDays} ${remainingDays === 1 ? 'día restante' : 'días restantes'}`}</span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded-md font-semibold ml-0.5 group-hover:bg-emerald-200">
+                Renovar
+              </span>
+            </button>
+          ) : usage.isTrialActive ? (
+            <button
+              onClick={onOpenPayment}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200/90 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition-all active:scale-95"
+              title="Día de prueba gratuito activo (24 horas)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Prueba gratis: {usage.trialHoursRemaining ?? 24}h restantes</span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenPayment}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-slate-900 rounded-xl text-xs font-bold cursor-pointer shadow-xs transition-all active:scale-95 border border-amber-300/80"
+              title="Activar plan escolar mensual por $10.000 COP o canjear código"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-950" />
+              <span>Activar Plan ($10.000 COP)</span>
             </button>
           )}
 
@@ -181,47 +199,25 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
           {onOpenLegal && (
             <button
               onClick={() => onOpenLegal('terms')}
-              className="neo-btn flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-gray-50 text-[#1A1A1A] rounded-xl text-xs font-black cursor-pointer shadow-[2px_2px_0px_#1A1A1A] whitespace-nowrap shrink-0"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer border border-slate-200 transition-all"
               title="Términos escolares, privacidad y soporte"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-blue-700 shrink-0" />
-              <span>Ayuda & Legal</span>
+              <HelpCircle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span>Ayuda</span>
             </button>
           )}
 
-          {/* Barra de Usuario Google */}
-          <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} />
+          {/* Barra de Perfil / Iniciar Sesión con Google */}
+          <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} onLogout={onLogout} />
         </div>
 
         {/* Lado Derecho - Móvil (< md): Perfil compacto + Menú Desplegable Hamburguesa */}
         <div className="flex md:hidden items-center gap-1.5 shrink-0" ref={menuRef}>
-          {/* Botón rápido de Activar en móvil si no tiene plan activo */}
-          {showActivatePaymentBtn && (
-            <button
-              onClick={onOpenPayment}
-              className="neo-btn flex items-center gap-1 px-2 py-1 bg-[#FFE66D] text-[#1A1A1A] rounded-lg text-xs font-black border border-[#1A1A1A] shadow-[1.5px_1.5px_0px_#1A1A1A] whitespace-nowrap shrink-0"
-              title="Activar plan escolar"
-            >
-              <Sparkles className="w-3 h-3 text-amber-900 shrink-0" />
-              <span className="text-[11px]">Activar</span>
-            </button>
-          )}
-
-          {/* Indicador de suscripción activa en móvil */}
-          {!isAdmin && isSubscriptionActive && (
-            <div
-              className="px-2 py-1 bg-[#A8E6CF] rounded-lg border border-[#1A1A1A] shadow-[1.5px_1.5px_0px_#1A1A1A] text-[11px] font-black text-[#1A1A1A] flex items-center gap-1 whitespace-nowrap shrink-0"
-              title={`${remainingDays} días de suscripción`}
-            >
-              <span>{remainingDays}d</span>
-            </div>
-          )}
-
-          {/* Botón Menú Hamburguesa / Desplegable */}
+          {/* Botón Menú Hamburguesa */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="w-9 h-9 rounded-xl bg-white hover:bg-[#FAF7EE] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] flex items-center justify-center cursor-pointer transition-transform active:scale-95"
+            className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 cursor-pointer transition-colors"
             aria-label="Abrir menú de navegación"
             aria-expanded={mobileMenuOpen}
           >
@@ -230,94 +226,59 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
 
           {/* Menú Desplegable Flotante Móvil */}
           {mobileMenuOpen && (
-            <div className="absolute top-14 right-3 w-[calc(100vw-24px)] max-w-sm bg-[#FAF7EE] rounded-2xl border-[3px] border-[#1A1A1A] shadow-[6px_6px_0px_#1A1A1A] p-3.5 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+            <div className="absolute top-16 right-3 w-[calc(100vw-24px)] max-w-sm bg-white rounded-2xl border border-slate-200 shadow-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
               {/* Tarjeta de Usuario / Perfil en el menú */}
-              <div className="p-2.5 bg-white rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A]">
-                <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} />
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} onLogout={onLogout} />
               </div>
 
-              {/* Acciones principales del menú */}
               <div className="space-y-2">
-                {/* Selector de nivel escolar dentro del menú con el interruptor deslizante */}
-                <div className="p-2.5 bg-white rounded-xl border border-[#1A1A1A] flex flex-col gap-2">
-                  <span className="text-xs font-black text-[#1A1A1A] flex items-center gap-1.5">
-                    <GraduationCap className="w-4 h-4 text-[#1A1A1A]" />
-                    <span>Nivel Educativo Activo:</span>
-                  </span>
-                  <div className="flex justify-center">
-                    <GradeLevelSwitch
-                      gradeLevel={gradeLevel}
-                      onChange={handleLevelSelect}
-                      size="compact"
-                    />
-                  </div>
-                </div>
-
-                {/* Si es Administrador */}
                 {isAdmin && onOpenAdmin && (
                   <button
                     onClick={handleOpenAdminClick}
-                    className="w-full flex items-center justify-between p-2.5 bg-[#FFE66D] hover:bg-[#fedd48] rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] text-left text-xs font-black cursor-pointer"
+                    className="w-full flex items-center justify-between p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 text-left text-xs font-bold text-amber-950 cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-amber-900" />
+                      <Shield className="w-4 h-4 text-amber-700" />
                       <span>Panel de Administrador</span>
                     </div>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 text-amber-700" />
                   </button>
                 )}
 
-                {/* Si no tiene suscripción activa */}
                 {showActivatePaymentBtn && (
                   <button
                     onClick={handleOpenPaymentClick}
-                    className="w-full flex items-center justify-between p-2.5 bg-[#FFE66D] hover:bg-[#fedd48] rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] text-left text-xs font-black cursor-pointer"
+                    className="w-full flex items-center justify-between p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 text-left text-xs font-bold text-amber-950 cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-900" />
+                      <Sparkles className="w-4 h-4 text-amber-700" />
                       <div>
                         <span>Activar Plan Escolar</span>
-                        <span className="block text-[10px] font-bold text-[#1A1A1A]/70 leading-none">
-                          $5.000 COP / 30 días ilimitados
+                        <span className="block text-[10px] font-normal text-slate-500">
+                          $10.000 COP / Mes (30 días de acceso)
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 text-amber-700" />
                   </button>
                 )}
 
-                {/* Si ya tiene suscripción activa */}
-                {!isAdmin && isSubscriptionActive && (
-                  <div className="p-2.5 bg-[#A8E6CF] rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] flex items-center justify-between text-xs font-black">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-800" />
-                      <div>
-                        <span className="text-emerald-950">Plan Escolar Activo</span>
-                        <span className="block text-[10px] font-bold text-emerald-900/80">
-                          {remainingDays} días de acceso ilimitado
-                        </span>
-                      </div>
-                    </div>
-                    <Calendar className="w-4 h-4 text-emerald-800" />
-                  </div>
-                )}
-
-                {/* Acceso a Términos, Privacidad y Soporte */}
                 {onOpenLegal && (
-                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  <div className="grid grid-cols-2 gap-2 pt-1">
                     <button
                       onClick={() => handleOpenLegalTab('terms')}
-                      className="p-2 bg-white hover:bg-gray-50 rounded-xl border border-[#1A1A1A] text-left text-[11px] font-black text-[#1A1A1A] flex items-center gap-1.5 shadow-[1px_1px_0px_#1A1A1A] cursor-pointer"
+                      className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-left text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer"
                     >
-                      <HelpCircle className="w-3.5 h-3.5 text-blue-700 shrink-0" />
-                      <span>Ayuda y Soporte</span>
+                      <HelpCircle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>Ayuda</span>
                     </button>
                     <button
                       onClick={() => handleOpenLegalTab('privacy')}
-                      className="p-2 bg-white hover:bg-gray-50 rounded-xl border border-[#1A1A1A] text-left text-[11px] font-black text-[#1A1A1A] flex items-center gap-1.5 shadow-[1px_1px_0px_#1A1A1A] cursor-pointer"
+                      className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-left text-xs font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Shield className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                      <span>Privacidad Escolar</span>
+                      <Shield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Privacidad</span>
                     </button>
                   </div>
                 )}
@@ -326,7 +287,7 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
                   <button
                     type="button"
                     onClick={handleLogoutClick}
-                    className="w-full p-2 text-center text-xs font-black text-red-700 hover:bg-red-50 rounded-xl border border-red-300 cursor-pointer transition-colors"
+                    className="w-full p-2 text-center text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl border border-red-200 cursor-pointer transition-colors"
                   >
                     Cerrar sesión
                   </button>
@@ -353,57 +314,29 @@ export interface HeroBannerProps {
  * integrando la mascota escolar interactiva.
  */
 export const HeroBanner: React.FC<HeroBannerProps> = ({
-  gradeLevel = 'primaria',
-  onGradeLevelChange,
   selectedSubjectId = 'lengua',
-  isLoading = false,
 }) => {
-  const isPrimaria = gradeLevel === 'primaria';
-
   return (
-    <div
-      className={`relative rounded-2xl border-[2.5px] border-[#181829] shadow-[4px_4px_0px_#181829] p-4 sm:p-5 overflow-hidden transition-all duration-300 ${
-        isPrimaria ? 'bg-white' : 'bg-gradient-to-br from-white to-[#F0FDFA]'
-      }`}
-    >
-      <div className="flex flex-col items-center justify-center max-w-xl mx-auto space-y-2.5">
-        {/* Insignia dinámica según Primaria vs Bachillerato */}
-        <div
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border-2 border-[#181829] shadow-[2px_2px_0px_#181829] text-[11px] font-black uppercase tracking-wider transition-colors duration-200 ${
-            isPrimaria ? 'bg-[#FFE66D] text-[#181829]' : 'bg-[#38BDF8] text-[#181829]'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-[#181829]" />
-          <span>
-            {isPrimaria
-              ? '🌟 Modo Explorador · Primaria'
-              : '🚀 Modo Reto · Bachillerato'}
-          </span>
-        </div>
-
-        {/* Único Interruptor Deslizante Protagonista (Primaria <-> Bachillerato) */}
-        {onGradeLevelChange && (
-          <div className="pt-0.5 flex flex-col items-center gap-1 w-full">
-            <GradeLevelSwitch
-              gradeLevel={gradeLevel}
-              onChange={onGradeLevelChange}
-              size="large"
-            />
-            <span className="text-[11px] font-bold text-[#181829]/65 text-center">
-              {isPrimaria
-                ? 'Explicaciones con cuentos y ejemplos fáciles'
-                : 'Desarrollo de fórmulas, talleres y preparación de exámenes'}
-            </span>
+    <div className="relative rounded-2xl bg-white border border-slate-200/90 shadow-xs p-4 sm:p-5 overflow-hidden transition-all">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 max-w-5xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-lg shrink-0">
+            📚
           </div>
-        )}
-
-        {/* Compañero / Mascota Escolar Interactiva */}
-        <div className="w-full pt-1">
-          <SchoolMascot
-            gradeLevel={gradeLevel}
-            subjectId={selectedSubjectId}
-            isLoading={isLoading}
-          />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
+                Tutor Escolar Inteligente
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="text-xs text-slate-500 font-medium">
+                Materia activa: <strong className="text-slate-800">{getSubjectById(selectedSubjectId).name}</strong>
+              </span>
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 leading-tight mt-0.5">
+              Escribe o sube tu tarea escolar para analizarla paso a paso
+            </h2>
+          </div>
         </div>
       </div>
     </div>

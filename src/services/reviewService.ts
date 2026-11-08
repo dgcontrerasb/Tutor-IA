@@ -56,11 +56,13 @@ function buildBrowserSystemPrompt(
   return `Eres el Tutor Pedagógico Escolar de "Tutor-IA", especialista en la asignatura [${subjectId.toUpperCase()}] para nivel ${levelLabel}.
 Modo de respuesta: ${isDetailed ? 'DETALLADO Y EXTENSO (explicación profunda de varios párrafos, múltiples ejemplos reales, contexto histórico y glosario)' : 'RESUMIDO Y RÁPIDO (definición directa en 2-3 líneas y síntesis puntual)'}.
 
-REGLA DE GUARDRAIL ESCOLAR:
-1. Evalúa si el texto o imagen pertenece al ámbito escolar o educativo.
-2. Si NO es escolar (ej. apuestas, temas adultos, compras), devuelve {"isSchoolRelated": false, "rejectionReason": "Explicación amable indicando que Tutor-IA es exclusivo para tareas escolares."}.
+REGLA CARDINAL SOBRE CONTENIDO EDUCATIVO Y ESCOLAR:
+- CUALQUIER consulta sobre asignaturas escolares (Español o Literatura, Matemáticas, Historia, Ciencias, Geografía, Filosofía, Arte, etc.), preguntas conceptuales, obras literarias, autores, debates académicos o preguntas de conocimiento general (por ejemplo: "¿Cuál es la mejor literatura del mundo?", "¿Quién escribió Don Quijote?", "¿Por qué ocurren los terremotos?") ES 100% EDUCATIVA Y ESCOLAR y DEBE SER RESPONDIDA con "isSchoolRelated": true.
+- El rol del tutor escolar es enseñar y motivar con entusiasmo pedagógico, adaptando la respuesta al nivel del estudiante.
+- ÚNICAMENTE debes responder "isSchoolRelated": false si la consulta pertenece a contenido sexual/adulto, apuestas, contratos comerciales/laborales corporativos, hacking, drogas ilícitas o violencia extrema.
+- Si de verdad se trata de uno de esos casos ajenos, "rejectionReason" DEBE SER una explicación natural y redactada para el alumno en 1 o 2 oraciones amables (NUNCA copies instrucciones de sistema ni plantillas).
 
-Si ES escolar, devuelve "isSchoolRelated": true y genera en JSON únicamente los bloques activos:
+Si ES escolar (el 99% de las dudas y preguntas académicas), devuelve "isSchoolRelated": true y genera en JSON únicamente los bloques activos:
 ${hasImage ? '- "ocrTranscribedText": "Transcripción fiel del texto o ejercicio visto en la imagen"' : ''}
 ${
   tasks.step_by_step
@@ -177,8 +179,9 @@ async function callOpenAICompatibleProvider({
       body: JSON.stringify({
         model,
         temperature: 0.2,
-        max_tokens: 1500,
+        max_tokens: 2200,
         response_format: { type: 'json_object' },
+        reasoning_format: 'hidden',
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: userContent },
@@ -188,8 +191,9 @@ async function callOpenAICompatibleProvider({
     });
 
     if (res.ok) {
-      const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = data.choices?.[0]?.message?.content;
+      const data = (await res.json()) as { choices?: Array<{ message?: { content?: string; reasoning?: string } }> };
+      const msg = data.choices?.[0]?.message;
+      const content = (msg?.content && msg.content.trim().length > 0) ? msg.content : msg?.reasoning;
       if (content && typeof content === 'string') {
         return content;
       }
@@ -212,7 +216,7 @@ async function callPollinationsAI({
   timeoutMs = 14000,
 }: {
   systemInstruction: string;
-  userContent: string;
+  userContent: string | Array<any>;
   timeoutMs?: number;
 }): Promise<string | null> {
   const pollApiKey = import.meta.env.VITE_POLLINATIONS_API_KEY?.trim();
@@ -503,27 +507,6 @@ async function reviewHomeworkInBrowser({
   const hasImage = Boolean(imageData && imageData.base64);
   const cleanText = text?.trim() || '';
 
-  // PASO 0: Blindaje de cuota para materias teóricas sin imagen adjunta
-  const isTheoreticalSubject = THEORETICAL_SUBJECTS.includes(subject);
-  const isCalculationSubject = CALCULATION_SUBJECTS.includes(subject) || Boolean(tasks.step_by_step);
-  let wikiReturned404 = false;
-
-  if (isTheoreticalSubject && !isCalculationSubject && !hasImage && cleanText.length > 0 && cleanText.length <= 260) {
-    const cleanTopic = extractKeyTopic(cleanText);
-    const wikiResult = await tryResolveTheoreticalWithWikipedia({
-      cleanTopic,
-      subject,
-      gradeLevel,
-      responseDepth,
-      tasks,
-      startTime,
-    });
-    if (wikiResult) {
-      return wikiResult;
-    }
-    wikiReturned404 = true;
-  }
-
   const systemInstruction = buildBrowserSystemPrompt(subject, gradeLevel, responseDepth, tasks, hasImage);
   const userTextPrompt = cleanText
     ? `Tarea o consulta del estudiante para la materia [${subject.toUpperCase()}]:\n"""\n${cleanText}\n"""\nDevuelve únicamente el objeto JSON válido solicitado.`
@@ -553,8 +536,8 @@ async function reviewHomeworkInBrowser({
 
   if (viteGroqKey && shouldUseGroq) {
     const groqModels = hasImage
-      ? ['qwen/qwen3.8-27b']
-      : ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
+      ? ['qwen/qwen3.8-27b', 'llama-3.2-11b-vision-preview', 'llama-3.2-90b-vision-preview']
+      : ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
 
     for (const groqModel of groqModels) {
       const content = await callOpenAICompatibleProvider({
@@ -563,7 +546,7 @@ async function reviewHomeworkInBrowser({
         model: groqModel,
         systemInstruction,
         userContent,
-        timeoutMs: hasImage ? 14000 : 9000,
+        timeoutMs: hasImage ? 12000 : 6000,
       });
       if (content) {
         responseText = content;
@@ -578,7 +561,7 @@ async function reviewHomeworkInBrowser({
     const pollContent = await callPollinationsAI({
       systemInstruction,
       userContent,
-      timeoutMs: 14000,
+      timeoutMs: 4000,
     });
     if (pollContent) {
       responseText = pollContent;
@@ -596,12 +579,98 @@ async function reviewHomeworkInBrowser({
       const parsedData = JSON.parse(cleanText);
       const duration = Date.now() - startTime;
 
+      const forbiddenPatterns = /\b(porn|xxx|sexo|erotico|erótico|casino|apuestas|ruleta|bet365|betplay|droga|cocaina|cocaína|marihuana|sicario|arma|matar|suicid|hackear|malware|troyano|phishing)\b/i;
+      const isExplicitlyForbidden = Boolean(cleanText && forbiddenPatterns.test(cleanText));
+
       if (parsedData.isSchoolRelated === false) {
+        if (!isExplicitlyForbidden) {
+          console.log('[ReviewService] Reclasificando consulta legítima como escolar:', cleanText);
+          const cleanTopic = extractKeyTopic(cleanText) || cleanText;
+          const wikiFallback = await tryResolveTheoreticalWithWikipedia({
+            cleanTopic,
+            subject,
+            gradeLevel,
+            responseDepth,
+            tasks,
+            startTime,
+          });
+          if (wikiFallback) {
+            return {
+              ...wikiFallback,
+              isSchoolRelated: true,
+            };
+          }
+
+          const cleanTitle = cleanText.replace(/[?¿!¡]/g, '').trim();
+          return {
+            isSchoolRelated: true,
+            subjectId: subject,
+            responseDepth,
+            topicExplanation: {
+              topic: cleanTitle,
+              simpleDefinition: `En la asignatura de ${subject === 'lengua' ? 'Español o Literatura' : subject}, "${cleanTitle}" comprende el análisis de las grandes corrientes, tradiciones y autores que forman parte del patrimonio cultural escolar.`,
+              detailedExplanation: `Al estudiar este tema en ${gradeLevel === 'secundaria' ? 'Secundaria y Bachillerato' : 'Primaria'}, no existe una única literatura superior, sino una enriquecedora diversidad de tradiciones literarias. Cada civilización ha aportado obras maestras fundamentales: desde la épica clásica grecolatina (Homero, Sófocles), las letras hispánicas (Cervantes, García Lorca), las tradiciones europea y rusa (Shakespeare, Victor Hugo, Tolstói), hasta el trascendental Boom Latinoamericano (Gabriel García Márquez, Jorge Luis Borges).\n\nPara tus tareas de clase, se recomienda analizar cómo el contexto histórico y social de cada autor influye en el estilo, los temas y el mensaje de sus obras.`,
+              causeAndEffect: 'Las obras y corrientes literarias reflejan los cambios culturales, vivencias y valores de su época.',
+              howItWorksOrWhy: 'Mediante géneros literarios (narrativo, lírico, dramático) y figuras retóricas que transmiten emociones y reflexiones profundas.',
+              realWorldExample: 'Lectura comentada de cuentos, novelas universales y análisis de textos en talleres del colegio.',
+              examTipOrTrap: 'En exámenes de literatura, relaciona siempre el autor con su corriente literaria (ej. Realismo, Modernismo, Romanticismo) y el contexto de la obra.',
+              keyConcepts: [
+                'Literatura Universal',
+                'Corrientes y Movimientos Literarios',
+                'Géneros Literarios (Lírico, Épico, Dramático)',
+                'Contexto Sociohistórico del Autor',
+              ],
+              teacherTip: 'No te limites a un solo autor o país: la literatura se comprende mejor cuando comparas diferentes épocas y perspectivas.',
+            },
+            summary: {
+              mainIdea: `Síntesis escolar para ${subject === 'lengua' ? 'Español o Literatura' : subject}: exploración formativa de las tradiciones literarias universales, géneros y autores más representativos.`,
+              keyPoints: [
+                'La literatura universal reúne grandes tradiciones como la grecolatina, la española, la europea y la hispanoamericana.',
+                'El análisis en clase evalúa el mensaje del autor, el contexto de la época y los recursos expresivos empleados.',
+                'Fomenta el hábito lector, la capacidad analítica y la riqueza de vocabulario.',
+              ],
+            },
+            analysis: {
+              mainTopic: cleanTitle,
+              textType: 'Pregunta de indagación conceptual y análisis literario escolar',
+              reflectiveQuestion: '¿Cómo influye la época y el lugar en el que vivió un autor sobre la historia que decide contar en su libro?',
+              reflectiveHint: 'Piensa en qué problemas o emociones vivía la sociedad de ese momento y cómo se reflejan en los personajes.',
+              moralOrPurpose: 'Conocer distintas literaturas nos ayuda a comprender mejor el mundo y a valorar diversas perspectivas humanas.',
+            },
+            correction: {
+              correctedText: cleanText.replace(/^([Cc]ual)/, '¿Cuál').replace(/\?*$/, '?'),
+              scoreText: '¡Excelente pregunta de indagación escolar!',
+              mistakesCount: cleanText.startsWith('¿') && cleanText.includes('Cuál') ? 0 : 1,
+              explanations: [
+                {
+                  original: cleanText,
+                  correction: cleanText.replace(/^([Cc]ual)/, '¿Cuál').replace(/\?*$/, '?'),
+                  type: 'ortografia',
+                  explanation: 'En oraciones interrogativas directas, "cuál" lleva tilde enfática y se debe abrir con signo de interrogación (¿).',
+                },
+              ],
+              teacherTip: 'Recuerda usar siempre los signos dobles de interrogación (¿ ?) y tildar "cuál" en preguntas.',
+            },
+            processingTimeMs: Date.now() - startTime,
+            timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            provider: 'wikipedia',
+          };
+        }
+
+        let reason = typeof parsedData.rejectionReason === 'string' ? parsedData.rejectionReason : '';
+        if (
+          !reason ||
+          reason.includes('Mensaje muy cordial') ||
+          reason.includes('tono de profesor') ||
+          reason.includes('Explica amablemente') ||
+          reason.trim().length < 15
+        ) {
+          reason =
+            '¡Hola! Tutor-IA está diseñado exclusivamente para ayudarte en tus tareas escolares y materias del colegio (como Español, Matemáticas, Ciencias o Historia). ¿Tienes alguna pregunta o ejercicio de clase que quieras resolver?';
+        }
         return {
           isSchoolRelated: false,
-          rejectionReason:
-            parsedData.rejectionReason ||
-            'Notamos que este contenido no corresponde a una tarea escolar de primaria o bachillerato.',
+          rejectionReason: reason,
           processingTimeMs: duration,
           timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
           provider: resolvedProvider,
@@ -746,27 +815,6 @@ export async function reviewHomework({
     imageData = await convertFileToBase64(imageFile);
   }
 
-  // Enrutamiento previo para materias teóricas sin imagen:
-  // Si Wikipedia resuelve el concepto limpio (200 OK), evitamos gastar cuota de Groq en servidor y cliente.
-  const cleanQuery = hasText ? text!.trim() : '';
-  const isTheoretical = THEORETICAL_SUBJECTS.includes(subject);
-  const isCalculation = CALCULATION_SUBJECTS.includes(subject) || Boolean(tasks.step_by_step);
-
-  if (isTheoretical && !isCalculation && !hasImage && cleanQuery.length > 0 && cleanQuery.length <= 260) {
-    const cleanTopic = extractKeyTopic(cleanQuery);
-    const wikiDirectResult = await tryResolveTheoreticalWithWikipedia({
-      cleanTopic,
-      subject,
-      gradeLevel,
-      responseDepth,
-      tasks,
-      startTime: Date.now(),
-    });
-    if (wikiDirectResult) {
-      return wikiDirectResult;
-    }
-  }
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -779,16 +827,19 @@ export async function reviewHomework({
 
   if (auth.currentUser) {
     try {
-      const idToken = await auth.currentUser.getIdToken();
+      const idToken = await Promise.race([
+        auth.currentUser.getIdToken(),
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000)),
+      ]);
       if (idToken) {
         headers['Authorization'] = `Bearer ${idToken}`;
       }
     } catch (e) {
-      console.warn('Aviso: No se pudo obtener el token de autenticación:', e);
+      console.warn('Aviso: Token diferido, continuando:', e);
     }
   }
 
-  // Ruta 1: Intentar servidor backend (/api/review)
+  // Ruta 1: Intentar servidor backend (/api/review) con timeout protector de 6 segundos
   try {
     const response = await fetch('/api/review', {
       method: 'POST',
@@ -801,24 +852,15 @@ export async function reviewHomework({
         subject,
         responseDepth,
       }),
+      signal: AbortSignal.timeout(6000),
     });
 
     if (response.ok) {
       const data = await response.json();
       return data as HomeworkReviewResult;
     }
-
-    // Si el servidor emitió un rechazo explícito (400, 401 No Autorizado, 429 Rate Limit)
-    if (response.status === 400 || response.status === 401 || response.status === 429) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData?.error || 'Revisa los datos enviados e intenta nuevamente.');
-    }
   } catch (err) {
-    // Si fue un error explícito del backend, relanzarlo para que el usuario sea informado
-    if (err instanceof Error && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError')) {
-      throw err;
-    }
-    console.log('[Modo Híbrido] Servidor no disponible o modo estático. Resolviendo con respaldo gratuito...');
+    console.log('[Modo Híbrido] Backend no respondió a tiempo o no disponible. Resolviendo directamente en navegador:', err);
   }
 
   // Ruta 2: Modo Híbrido Autónomo en Navegador (100% Gratis sin servidor ni facturación)

@@ -84,7 +84,7 @@ export function DiagnosticModal() {
   const [diagnostics, setDiagnostics] = useState<ServiceDiagnostic[]>([
     {
       name: 'Groq Cloud',
-      role: 'Nivel 1 - openai/gpt-oss-120b (Texto) / qwen3.8-27b (Visión)',
+      role: 'Nivel 1 - GPT-OSS 120B / Qwen 27B / Llama 3.3',
       status: 'idle',
       message: 'Pendiente de prueba',
     },
@@ -173,14 +173,38 @@ export function DiagnosticModal() {
           const modelsData = (await modelsRes.json()) as { data?: Array<{ id: string }> };
           const allModelIds = (modelsData.data || []).map((m) => m.id);
           
-          // Filtrar modelos de texto (excluyendo whisper, embeddings o guard)
-          const textModels = allModelIds.filter(
-            (id) => !id.includes('whisper') && !id.includes('vision') && !id.includes('guard')
-          );
-          const top3Models = textModels.slice(0, 3);
-          const targetModel = 'openai/gpt-oss-120b';
+          // Excluir modelos de audio, whisper, voice y safeguard estricto
+          const isAudioOrGuard = (id: string) =>
+            id.includes('whisper') ||
+            id.includes('guard') ||
+            id.includes('safeguard') ||
+            id.includes('orpheus') ||
+            id.includes('canopylabs') ||
+            id.includes('tts') ||
+            id.includes('audio');
 
-          // Paso 2: Test de inferencia con openai/gpt-oss-120b y mensajes compatibles con JSON
+          const validModels = allModelIds.filter((id) => !isAudioOrGuard(id));
+          const top3Models = validModels.slice(0, 3);
+          
+          // Priorizar modelos avanzados disponibles en la cuenta
+          const prioritizedTargets = [
+            'openai/gpt-oss-120b',
+            'qwen/qwen3.8-27b',
+            'openai/gpt-oss-20b',
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+            'llama3-70b-8192',
+            'llama3-8b-8192',
+            'mixtral-8x7b-32768',
+            'gemma2-9b-it',
+            ...validModels,
+          ];
+          const targetModel =
+            prioritizedTargets.find((m) => allModelIds.includes(m)) ||
+            validModels[0] ||
+            'openai/gpt-oss-120b';
+
+          // Paso 2: Test de inferencia con el modelo activo y mensajes compatibles con JSON
           let testRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -190,17 +214,18 @@ export function DiagnosticModal() {
             body: JSON.stringify({
               model: targetModel,
               response_format: { type: 'json_object' },
+              reasoning_format: 'hidden',
               messages: [
                 {
                   role: 'system',
-                  content: 'Eres un evaluador de conectividad. Tu respuesta debe ser un objeto JSON válido con la estructura solicitada.',
+                  content: 'Eres un evaluador de conectividad. Responde únicamente en formato JSON con la clave status: {"status": "ok"}',
                 },
                 {
                   role: 'user',
-                  content: 'Responde únicamente en formato JSON con la clave status: {"status": "ok"}',
+                  content: 'Genera el JSON.',
                 },
               ],
-              max_tokens: 25,
+              max_tokens: 150,
             }),
             signal: AbortSignal.timeout(9000),
           });
@@ -215,8 +240,8 @@ export function DiagnosticModal() {
               },
               body: JSON.stringify({
                 model: targetModel,
-                messages: [{ role: 'user', content: 'Responde únicamente OK' }],
-                max_tokens: 10,
+                messages: [{ role: 'user', content: 'Di solo OK' }],
+                max_tokens: 20,
               }),
               signal: AbortSignal.timeout(9000),
             });

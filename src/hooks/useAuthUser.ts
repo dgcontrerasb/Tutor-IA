@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
   auth,
@@ -8,16 +8,12 @@ import {
 } from '../services/firebase';
 import { getUsage } from '../services/usageService';
 import { UserUsage } from '../types';
-import { AuthToastData } from '../components/AuthToast';
-import { getCleanDisplayName } from '../components/AuthBar';
 
 export function useAuthUser() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [authToast, setAuthToast] = useState<AuthToastData | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [usage, setUsage] = useState<UserUsage>(() => getUsage());
-  const prevAuthUserUidRef = useRef<string | null | undefined>(undefined);
 
   const handleRefreshProfile = async () => {
     if (!auth.currentUser) return null;
@@ -55,37 +51,16 @@ export function useAuthUser() {
           if (isMounted) {
             setCurrentUser(profile);
             setUsage(getUserUsageFromProfile(profile));
-
-            if (
-              prevAuthUserUidRef.current !== undefined &&
-              prevAuthUserUidRef.current !== firebaseUser.uid
-            ) {
-              setAuthToast({
-                type: 'login',
-                userName: getCleanDisplayName(profile),
-                role: profile.role,
-              });
-            }
           }
         } catch (err) {
           console.error('[Auth Hook] Error sincronizando perfil:', err);
         } finally {
           if (isMounted) {
             setAuthLoading(false);
-            prevAuthUserUidRef.current = firebaseUser.uid;
           }
         }
       } else {
         if (isMounted) {
-          if (
-            prevAuthUserUidRef.current !== undefined &&
-            prevAuthUserUidRef.current !== null
-          ) {
-            setAuthToast({
-              type: 'logout',
-            });
-          }
-          prevAuthUserUidRef.current = null;
           setCurrentUser(null);
           setAuthLoading(false);
           setUsage(getUsage());
@@ -104,8 +79,6 @@ export function useAuthUser() {
     currentUser,
     setCurrentUser,
     authLoading,
-    authToast,
-    setAuthToast,
     isSyncing,
     usage,
     setUsage,

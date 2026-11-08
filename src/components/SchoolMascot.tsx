@@ -28,18 +28,16 @@ export const GradeLevelSwitch: React.FC<GradeLevelSwitchProps> = ({
 
   return (
     <div
-      className={`relative inline-grid grid-cols-2 items-center bg-white rounded-xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] p-0.5 select-none overflow-hidden ${
-        size === 'large' ? 'h-11 sm:h-12 min-w-[250px] sm:min-w-[290px]' : 'h-9 sm:h-10 min-w-[186px] sm:min-w-[216px]'
+      className={`relative inline-grid grid-cols-2 items-center bg-slate-100 rounded-xl p-1 select-none border border-slate-200/80 ${
+        size === 'large' ? 'h-10 min-w-[240px]' : 'h-9 min-w-[200px]'
       }`}
       role="group"
       aria-label="Selector de nivel escolar"
     >
       {/* Pastilla deslizante animada de fondo */}
       <div
-        className={`absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-lg border border-[#1A1A1A] shadow-[1px_1px_0px_#1A1A1A] transition-all duration-200 ease-out pointer-events-none ${
-          isPrimaria
-            ? 'left-0.5 translate-x-0 bg-[#FFE66D]'
-            : 'left-0.5 translate-x-full bg-[#A0E7E5]'
+        className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-white shadow-sm transition-all duration-200 ease-out pointer-events-none ${
+          isPrimaria ? 'left-1 translate-x-0' : 'left-1 translate-x-full'
         }`}
       />
 
@@ -48,12 +46,12 @@ export const GradeLevelSwitch: React.FC<GradeLevelSwitchProps> = ({
         type="button"
         onClick={() => onChange('primaria')}
         aria-pressed={isPrimaria}
-        className={`relative z-10 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-full rounded-lg font-black transition-transform duration-150 cursor-pointer whitespace-nowrap ${
-          size === 'large' ? 'text-xs sm:text-sm' : 'text-[11px] sm:text-xs'
-        } ${isPrimaria ? 'text-[#1A1A1A] scale-[1.02]' : 'text-[#1A1A1A]/65 hover:text-[#1A1A1A]'}`}
-        title="Modo Primaria: Explicaciones paso a paso con ejemplos divertidos para niños"
+        className={`relative z-10 flex items-center justify-center gap-1.5 px-3 h-full rounded-lg font-bold text-xs transition-colors cursor-pointer whitespace-nowrap ${
+          isPrimaria ? 'text-indigo-900 font-extrabold' : 'text-slate-600 hover:text-slate-900'
+        }`}
+        title="Modo Primaria: Explicaciones paso a paso con ejemplos divertidos"
       >
-        <span className={size === 'large' ? 'text-base sm:text-lg' : 'text-xs sm:text-sm'}>🎒</span>
+        <span>🎒</span>
         <span>Primaria</span>
       </button>
 
@@ -62,12 +60,12 @@ export const GradeLevelSwitch: React.FC<GradeLevelSwitchProps> = ({
         type="button"
         onClick={() => onChange('secundaria')}
         aria-pressed={!isPrimaria}
-        className={`relative z-10 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-full rounded-lg font-black transition-transform duration-150 cursor-pointer whitespace-nowrap ${
-          size === 'large' ? 'text-xs sm:text-sm' : 'text-[11px] sm:text-xs'
-        } ${!isPrimaria ? 'text-[#1A1A1A] scale-[1.02]' : 'text-[#1A1A1A]/65 hover:text-[#1A1A1A]'}`}
-        title="Modo Bachillerato: Resolución completa, fórmulas, análisis y preparación de exámenes"
+        className={`relative z-10 flex items-center justify-center gap-1.5 px-3 h-full rounded-lg font-bold text-xs transition-colors cursor-pointer whitespace-nowrap ${
+          !isPrimaria ? 'text-indigo-900 font-extrabold' : 'text-slate-600 hover:text-slate-900'
+        }`}
+        title="Modo Bachillerato: Resolución completa, fórmulas y preparación de exámenes"
       >
-        <span className={size === 'large' ? 'text-base sm:text-lg' : 'text-xs sm:text-sm'}>📐</span>
+        <span>📐</span>
         <span>Bachillerato</span>
       </button>
     </div>

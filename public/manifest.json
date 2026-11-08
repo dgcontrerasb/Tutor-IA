@@ -1,0 +1,44 @@
+{
+  "name": "Tutor-IA - Asistente Escolar Inteligente",
+  "short_name": "Tutor-IA",
+  "description": "Tutor pedagógico inteligente para Primaria y Bachillerato en 18 asignaturas escolares.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF7EE",
+  "theme_color": "#1E293B",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo_full.jpg",
+      "sizes": "1024x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
