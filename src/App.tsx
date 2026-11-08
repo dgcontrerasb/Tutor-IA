@@ -852,9 +852,6 @@ export default function App() {
 
                     <div className="text-xs text-slate-400 flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-slate-100">
                       <span>
-                        Nivel: <strong className="text-slate-600">{gradeLevel === 'primaria' ? 'Primaria' : 'Bachillerato'}</strong>
-                      </span>
-                      <span>
                         Materia: <strong className="text-slate-600">{getSubjectById(selectedSubjectId).shortName}</strong>
                       </span>
                       <span>

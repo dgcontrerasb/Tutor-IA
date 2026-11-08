@@ -219,9 +219,10 @@ export const RecentHomeworksHistory: React.FC<RecentHomeworksHistoryProps> = ({
     <>
       {/* ========================================================
           BOTÓN FLOTANTE "MI CUADERNO"
-          Diseño Bento Moderno: limpio, sutil y elegante
+          Diseño Bento Moderno: limpio, sutil y ubicado para evitar
+          superposiciones con insignias o barras inferiores
           ======================================================== */}
-      <div className="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-40">
+      <div className="fixed bottom-20 right-4 sm:bottom-20 sm:right-6 z-40">
         <button
           type="button"
           onClick={() => setIsOpen(true)}

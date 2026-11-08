@@ -28,6 +28,20 @@
   .font-hand {
     font-family: 'Caveat', cursive;
   }
+
+  /* Ocultar marca de agua o drawer flotante inyectado por Netlify para no tapar controles */
+  [data-netlify-drawer],
+  #netlify-drawer,
+  .netlify-badge,
+  iframe[title*="Netlify" i],
+  iframe[src*="netlify" i],
+  div[class*="netlify-drawer"],
+  div[data-testid="netlify-drawer"] {
+    display: none !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
 }
 
 /* =========================================================================
