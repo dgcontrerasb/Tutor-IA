@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tutoria-co.netlify.app/sitemap.xml
