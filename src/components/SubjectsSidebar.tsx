@@ -212,6 +212,7 @@ export const SubjectsSidebar: React.FC<SubjectsSidebarProps> = ({
     <>
       {/* 1. MODO ESCRITORIO (Desktop >= lg) */}
       <aside
+        data-tour="subjects"
         className={`hidden lg:block shrink-0 sticky top-20 self-start transition-all duration-300 ${
           isCollapsedDesktop ? 'w-16' : 'w-56 xl:w-60'
         }`}

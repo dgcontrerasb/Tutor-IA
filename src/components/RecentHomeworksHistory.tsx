@@ -222,7 +222,7 @@ export const RecentHomeworksHistory: React.FC<RecentHomeworksHistoryProps> = ({
           Diseño Bento Moderno: limpio, sutil y ubicado para evitar
           superposiciones con insignias o barras inferiores
           ======================================================== */}
-      <div className="fixed bottom-20 right-4 sm:bottom-20 sm:right-6 z-40">
+      <div data-tour="notebook" className="fixed bottom-20 right-4 sm:bottom-20 sm:right-6 z-40">
         <button
           type="button"
           onClick={() => setIsOpen(true)}

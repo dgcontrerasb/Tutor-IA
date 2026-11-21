@@ -694,7 +694,7 @@ export default function App() {
           {/* Área Central de Trabajo */}
           <main className="flex-1 min-w-0 w-full space-y-4">
             {/* Acceso Rápido a Materias en Móvil (Solo pantallas pequeñas) */}
-            <div className="lg:hidden flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+            <div data-tour="subjects" className="lg:hidden flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
               <div className="flex items-center gap-2.5 min-w-0">
                 <span
                   className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-base shrink-0 shadow-xs"
@@ -794,7 +794,7 @@ export default function App() {
                       </div>
 
                       {/* Switch compacto de Nivel Escolar (Primaria / Bachillerato) */}
-                      <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200/80 text-[11px] font-bold shrink-0">
+                      <div data-tour="grade-level" className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200/80 text-[11px] font-bold shrink-0">
                         <button
                           type="button"
                           onClick={() => setGradeLevel('primaria')}
@@ -823,93 +823,98 @@ export default function App() {
                     </div>
 
                     {/* Zona de Entrada (Texto + Foto) */}
-                    <InputZone
-                      text={textInput}
-                      onTextChange={(t) => {
-                        setTextInput(t);
-                        setErrorMessage(null);
-                      }}
-                      imageFile={imageFile}
-                      onImageChange={(f) => {
-                        setImageFile(f);
-                        setErrorMessage(null);
-                      }}
-                      placeholder={getSubjectById(selectedSubjectId).placeholderText}
-                      disabled={isLoading || isExhausted}
-                      isMediaRelevant={isSubjectVisualOrFormula(selectedSubjectId)}
-                    />
-
-                    {/* Separador sutil + Selector de Tareas en chips compactos */}
-                    <div className="pt-3 border-t border-slate-100">
-                      <TaskSelector
-                        selectedTasks={selectedTasks}
-                        onToggleTask={handleToggleTask}
-                        subjectId={selectedSubjectId}
+                    <div data-tour="input-zone">
+                      <InputZone
+                        text={textInput}
+                        onTextChange={(t) => {
+                          setTextInput(t);
+                          setErrorMessage(null);
+                        }}
+                        imageFile={imageFile}
+                        onImageChange={(f) => {
+                          setImageFile(f);
+                          setErrorMessage(null);
+                        }}
+                        placeholder={getSubjectById(selectedSubjectId).placeholderText}
                         disabled={isLoading || isExhausted}
+                        isMediaRelevant={isSubjectVisualOrFormula(selectedSubjectId)}
                       />
                     </div>
 
-                    {/* Selector de Profundidad (Control Segmentado sin solapamientos) */}
-                    <div className="pt-3 border-t border-slate-100">
-                      <ResponseDepthSelector
-                        responseDepth={responseDepth}
-                        onChange={(depth) => setResponseDepth(depth)}
-                        gradeLevel={gradeLevel}
-                        disabled={isLoading || isExhausted}
-                      />
-                    </div>
-
-                    {/* Mensaje de Error si ocurre */}
-                    {errorMessage && (
-                      <div className="flex items-start gap-2.5 p-3 bg-red-50 rounded-xl border border-red-200 text-xs font-semibold text-red-900">
-                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                        <p className="leading-snug flex-1">{errorMessage}</p>
+                    {/* Opciones + Botón principal agrupados para el Tour */}
+                    <div data-tour="options-submit" className="space-y-4">
+                      {/* Separador sutil + Selector de Tareas en chips compactos */}
+                      <div className="pt-3 border-t border-slate-100">
+                        <TaskSelector
+                          selectedTasks={selectedTasks}
+                          onToggleTask={handleToggleTask}
+                          subjectId={selectedSubjectId}
+                          disabled={isLoading || isExhausted}
+                        />
                       </div>
-                    )}
 
-                    {/* Botón Principal de Acción Integrado */}
-                    <div className="pt-2 flex items-center gap-2.5">
-                      {(textInput || imageFile || result) && (
-                        <button
-                          type="button"
-                          onClick={handleReset}
-                          disabled={isLoading}
-                          className="px-3.5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-colors shrink-0"
-                          title="Limpiar formulario"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Limpiar</span>
-                        </button>
+                      {/* Selector de Profundidad (Control Segmentado sin solapamientos) */}
+                      <div className="pt-3 border-t border-slate-100">
+                        <ResponseDepthSelector
+                          responseDepth={responseDepth}
+                          onChange={(depth) => setResponseDepth(depth)}
+                          gradeLevel={gradeLevel}
+                          disabled={isLoading || isExhausted}
+                        />
+                      </div>
+
+                      {/* Mensaje de Error si ocurre */}
+                      {errorMessage && (
+                        <div className="flex items-start gap-2.5 p-3 bg-red-50 rounded-xl border border-red-200 text-xs font-semibold text-red-900">
+                          <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                          <p className="leading-snug flex-1">{errorMessage}</p>
+                        </div>
                       )}
 
-                      <button
-                        type="button"
-                        onClick={handleSubmitReview}
-                        disabled={isLoading || !isAtLeastOneTaskSelected || !hasInput || isExhausted}
-                        className={`flex-1 py-3 px-5 text-sm sm:text-base font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-50 transition-all active:scale-[0.99] ${
-                          isExhausted
-                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed shadow-none'
-                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-200/80'
-                        }`}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Sparkles className="w-4 h-4 animate-spin text-white" />
-                            <span>Revisando tu tarea...</span>
-                          </>
-                        ) : isExhausted ? (
-                          <span>Prueba completada (0 usos) 🚫</span>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 text-white" />
-                            <span>
-                              {gradeLevel === 'primaria'
-                                ? 'Revisar mi tarea ahora'
-                                : 'Analizar y resolver tarea'}
-                            </span>
-                          </>
+                      {/* Botón Principal de Acción Integrado */}
+                      <div className="pt-2 flex items-center gap-2.5">
+                        {(textInput || imageFile || result) && (
+                          <button
+                            type="button"
+                            onClick={handleReset}
+                            disabled={isLoading}
+                            className="px-3.5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-colors shrink-0"
+                            title="Limpiar formulario"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Limpiar</span>
+                          </button>
                         )}
-                      </button>
+
+                        <button
+                          type="button"
+                          onClick={handleSubmitReview}
+                          disabled={isLoading || !isAtLeastOneTaskSelected || !hasInput || isExhausted}
+                          className={`flex-1 py-3 px-5 text-sm sm:text-base font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-50 transition-all active:scale-[0.99] ${
+                            isExhausted
+                              ? 'bg-slate-200 text-slate-500 cursor-not-allowed shadow-none'
+                              : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-200/80'
+                          }`}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Sparkles className="w-4 h-4 animate-spin text-white" />
+                              <span>Revisando tu tarea...</span>
+                            </>
+                          ) : isExhausted ? (
+                            <span>Prueba completada (0 usos) 🚫</span>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4 text-white" />
+                              <span>
+                                {gradeLevel === 'primaria'
+                                  ? 'Revisar mi tarea ahora'
+                                  : 'Analizar y resolver tarea'}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
