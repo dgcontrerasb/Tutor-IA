@@ -67,7 +67,15 @@ export function getLocalKnownUsers(): UserProfile[] {
         try {
           const item = JSON.parse(localStorage.getItem(key) || '{}');
           const p = item.profile as UserProfile;
-          if (p && p.email && !list.some((existing) => existing.uid === p.uid)) {
+          if (
+            p &&
+            p.email &&
+            !list.some(
+              (existing) =>
+                existing.uid === p.uid ||
+                (existing.email && existing.email.toLowerCase() === p.email.toLowerCase())
+            )
+          ) {
             list.push(p);
           }
         } catch {}
@@ -465,17 +473,37 @@ export async function fetchAllUsers(limitCount: number = 100): Promise<UserProfi
     });
   } catch {}
 
+  const isSyntheticUid = (uid?: string) => !uid || /^(admin_|user_)/i.test(uid);
+
+  const mergeUser = (existing: UserProfile | undefined, incoming: UserProfile): UserProfile => {
+    if (!existing) return incoming;
+    const preferredUid = !isSyntheticUid(incoming.uid)
+      ? incoming.uid
+      : !isSyntheticUid(existing.uid)
+      ? existing.uid
+      : incoming.uid || existing.uid;
+    const preservedRole =
+      existing.role === 'admin' || incoming.role === 'admin' ? 'admin' : incoming.role || existing.role;
+
+    return {
+      ...existing,
+      ...incoming,
+      uid: preferredUid,
+      role: preservedRole,
+    };
+  };
+
   const userMap = new Map<string, UserProfile>();
-  // 1. Primero locales
+  // 1. Primero locales (deduplicando por correo normalizado como clave principal)
   localUsers.forEach((u) => {
-    const key = (u.uid || u.email || '').toLowerCase().trim();
-    if (key) userMap.set(key, u);
+    const key = (u.email || u.uid || '').toLowerCase().trim();
+    if (key) userMap.set(key, mergeUser(userMap.get(key), u));
   });
   // 2. Luego remotos de Firestore y Servidor
   remoteUsers.forEach((u) => {
-    const key = (u.uid || u.email || '').toLowerCase().trim();
+    const key = (u.email || u.uid || '').toLowerCase().trim();
     if (key) {
-      userMap.set(key, { ...(userMap.get(key) || {}), ...u });
+      userMap.set(key, mergeUser(userMap.get(key), u));
     }
   });
 

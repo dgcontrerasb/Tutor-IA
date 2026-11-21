@@ -178,7 +178,7 @@ export const InputZone: React.FC<InputZoneProps> = ({
   return (
     <div className="space-y-3">
       {/* 1. Área de texto principal moderna estilo AI Workspace */}
-      <div className="relative bg-white rounded-2xl border border-slate-200/90 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition-all p-3 sm:p-4">
+      <div className="relative bg-white rounded-2xl border border-slate-200/90 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all p-3 sm:p-4">
         {/* Textarea */}
         <textarea
           id="homework-text"
@@ -208,7 +208,7 @@ export const InputZone: React.FC<InputZoneProps> = ({
               }`}
               title="Subir foto de tu cuaderno o ejercicio"
             >
-              <UploadCloud className="w-3.5 h-3.5 text-indigo-600" />
+              <UploadCloud className="w-3.5 h-3.5 text-blue-600" />
               <span>{imageFile ? 'Foto adjuntada' : 'Adjuntar Foto / Cuaderno'}</span>
             </button>
 
@@ -239,28 +239,17 @@ export const InputZone: React.FC<InputZoneProps> = ({
 
       {/* 2. Caja drag-and-drop inteligente para Foto o PDF (se muestra activamente solo si la tarea requiere archivo) */}
       {!shouldDisplayMediaDropzone ? (
-        /* Aviso pedagógico cuando la materia o tarea es teórica (ej: lengua, historia, etc.) */
-        <div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-2.5 text-xs text-slate-700">
-            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0 font-semibold shadow-2xs">
-              💡
-            </div>
-            <div>
-              <p className="font-semibold text-slate-800">
-                En materias teóricas, tu tutor responde al instante analizando el texto escrito o pegado arriba.
-              </p>
-              <p className="text-[11px] text-slate-500">
-                La subida de fotos y PDF está optimizada para ejercicios de matemáticas, ciencias, diagramas y figuras geométricas.
-              </p>
-            </div>
-          </div>
+        /* Aviso compacto sin truncado para materias teóricas */
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2 bg-slate-50/90 rounded-xl border border-slate-200/80 text-[11px] text-slate-600">
+          <span className="leading-snug">
+            💡 Análisis de texto instantáneo en materias teóricas.
+          </span>
           <button
             type="button"
             onClick={() => setForceShowMediaUpload(true)}
-            className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200 rounded-xl shrink-0 cursor-pointer flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="text-blue-600 hover:text-blue-700 font-bold shrink-0 cursor-pointer hover:underline"
           >
-            <ImageIcon className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Adjuntar Foto o PDF de todos modos</span>
+            Subir foto/PDF
           </button>
         </div>
       ) : (

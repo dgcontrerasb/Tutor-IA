@@ -151,15 +151,15 @@ export const SubjectsSidebar: React.FC<SubjectsSidebarProps> = ({
                 type="button"
                 onClick={() => handleSelect(subj.id)}
                 disabled={disabled}
-                className={`w-full text-left p-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-2.5 border ${
+                className={`w-full text-left p-2 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-2 border ${
                   isSelected
-                    ? 'bg-indigo-50/80 border-indigo-200 text-indigo-950 font-bold shadow-xs'
+                    ? 'bg-blue-50/90 border-blue-200 text-blue-950 font-bold shadow-xs'
                     : 'bg-white hover:bg-slate-50 border-transparent hover:border-slate-200 text-slate-700 font-medium'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                   <span
-                    className="w-8 h-8 rounded-lg border border-slate-200/80 flex items-center justify-center text-sm shrink-0 shadow-xs"
+                    className="w-7 h-7 rounded-lg border border-slate-200/80 flex items-center justify-center text-sm shrink-0 shadow-2xs"
                     style={{ backgroundColor: subj.color }}
                   >
                     {subj.icon}
@@ -175,7 +175,7 @@ export const SubjectsSidebar: React.FC<SubjectsSidebarProps> = ({
                 </div>
 
                 {isSelected && (
-                  <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>
+                  <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
                 )}
               </button>
             );
@@ -213,7 +213,7 @@ export const SubjectsSidebar: React.FC<SubjectsSidebarProps> = ({
       {/* 1. MODO ESCRITORIO (Desktop >= lg) */}
       <aside
         className={`hidden lg:block shrink-0 sticky top-20 self-start transition-all duration-300 ${
-          isCollapsedDesktop ? 'w-16' : 'w-72 xl:w-80'
+          isCollapsedDesktop ? 'w-16' : 'w-56 xl:w-60'
         }`}
       >
         {isCollapsedDesktop ? (

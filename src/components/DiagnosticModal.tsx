@@ -483,25 +483,25 @@ export function DiagnosticModal() {
           }
         }}
         aria-label="Abrir Diagnóstico Visual de IA"
-        className="fixed bottom-4 left-4 z-40 flex items-center gap-2 px-3.5 py-2.5 bg-[#FFE66D] hover:bg-[#FFD93D] active:translate-x-0.5 active:translate-y-0.5 rounded-2xl border-2 border-[#1A1A1A] shadow-[3px_3px_0px_#1A1A1A] font-black text-xs text-[#1A1A1A] cursor-pointer transition-all select-none"
+        className="fixed bottom-4 left-4 z-40 flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 active:scale-95 rounded-xl border border-slate-200/90 shadow-md font-bold text-xs text-slate-700 cursor-pointer transition-all select-none"
       >
-        <Activity className="w-4 h-4 text-[#1A1A1A]" />
+        <Activity className="w-3.5 h-3.5 text-blue-600" />
         <span>Diagnóstico IA</span>
       </button>
 
-      {/* Modal Neobrutalista táctil y 100% responsivo */}
+      {/* Modal Moderno Dual-Pane táctil y 100% responsivo */}
       {isOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-[#1A1A1A]/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
-          <div className="bg-[#FFFDF7] border-3 border-[#1A1A1A] rounded-2xl shadow-[6px_6px_0px_#1A1A1A] w-full max-w-lg overflow-hidden flex flex-col my-auto max-h-[92vh]">
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-auto max-h-[92vh]">
             {/* Header del Modal */}
-            <div className="bg-[#FFE66D] border-b-3 border-[#1A1A1A] p-3.5 sm:p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-white border-2 border-[#1A1A1A] flex items-center justify-center shadow-[2px_2px_0px_#1A1A1A]">
-                  <Activity className="w-4 h-4 text-[#1A1A1A]" />
+            <div className="bg-slate-50 border-b border-slate-200/80 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
                   <h3 className="font-black text-base text-[#1A1A1A] leading-tight">

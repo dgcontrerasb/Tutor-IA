@@ -63,14 +63,14 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
       {/* Aviso visual al recargar una consulta guardada */}
       {reloadedNotice && (
-        <div className="p-3.5 bg-[#FFE66D] rounded-2xl border-[2.5px] border-[#1A1A1A] shadow-[4px_4px_0px_#1A1A1A] flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200/90 shadow-xs flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2.5">
-            <span className="text-2xl">📓</span>
+            <span className="text-xl">📓</span>
             <div>
-              <p className="text-xs sm:text-sm font-black text-[#1A1A1A]">
+              <p className="text-xs sm:text-sm font-bold text-amber-950">
                 {reloadedNotice}
               </p>
-              <p className="text-[11px] font-bold text-[#1A1A1A]/70">
+              <p className="text-[11px] font-medium text-amber-800/80">
                 Ficha cargada directamente desde tu memoria local. Puedes repasarla libremente sin gastar consultas.
               </p>
             </div>
@@ -78,7 +78,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <button
             type="button"
             onClick={onClearReloadedNotice}
-            className="px-2.5 py-1 bg-white hover:bg-[#FAF7EE] text-[#1A1A1A] rounded-xl border-2 border-[#1A1A1A] text-xs font-black shadow-[1.5px_1.5px_0px_#1A1A1A] cursor-pointer shrink-0"
+            className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 rounded-xl border border-amber-300 text-xs font-bold shadow-2xs cursor-pointer shrink-0"
           >
             Entendido ✓
           </button>
@@ -98,9 +98,9 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       </div>
 
       {/* Barra de cabecera de resultados en pantalla con acciones del estudiante */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-slate-200/90 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xl shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-xl shrink-0">
             🎓
           </div>
           <div>
@@ -150,10 +150,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <button
             type="button"
             onClick={onPrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
             title="Descargar en PDF o copiar ficha de estudio"
           >
-            <FileDown className="w-3.5 h-3.5" />
+            <FileDown className="w-3.5 h-3.5 text-blue-600" />
             <span>Descargar PDF</span>
           </button>
         </div>
@@ -167,7 +167,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-all border ${
               activeTab === 'all'
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                 : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
             }`}
           >
@@ -182,7 +182,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               onClick={() => setActiveTab(t.key)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5 transition-all border ${
                 activeTab === t.key
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                   : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
               }`}
             >

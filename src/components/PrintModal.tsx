@@ -91,24 +91,24 @@ export const PrintModal: React.FC<PrintModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-xl bg-white rounded-3xl border-[3px] border-[#1A1A1A] shadow-[8px_8px_0px_#1A1A1A] p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
+        className="relative w-full max-w-xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="export-modal-title"
       >
         {/* Cabecera del Modal */}
-        <div className="flex items-center justify-between border-b-2 border-[#1A1A1A] pb-3">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#A0E7E5] border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] flex items-center justify-center text-xl shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0">
               📑
             </div>
             <div>
-              <h3 id="export-modal-title" className="text-base sm:text-lg font-black text-[#1A1A1A] leading-tight">
+              <h3 id="export-modal-title" className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
                 Guardar o Exportar Ficha Escolar
               </h3>
-              <p className="text-xs font-bold text-[#1A1A1A]/70">
+              <p className="text-xs text-slate-500">
                 {subjectName} · {gradeLevel === 'secundaria' ? 'Bachillerato' : 'Primaria'}
               </p>
             </div>
@@ -117,21 +117,21 @@ export const PrintModal: React.FC<PrintModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-white hover:bg-gray-100 border-2 border-[#1A1A1A] flex items-center justify-center text-[#1A1A1A] cursor-pointer shadow-[2px_2px_0px_#1A1A1A]"
+            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-slate-700 cursor-pointer transition-colors"
             aria-label="Cerrar ventana de exportación"
           >
-            <X className="w-4 h-4 stroke-[3]" />
+            <X className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
 
         {/* Notificación amigable */}
-        <div className="p-3.5 bg-[#FAF7EE] rounded-2xl border-2 border-[#1A1A1A] shadow-[2px_2px_0px_#1A1A1A] flex items-start gap-3">
+        <div className="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200/90 flex items-start gap-3">
           <span className="text-2xl shrink-0 mt-0.5">💡</span>
-          <div className="text-xs sm:text-[13px] text-[#1A1A1A] space-y-1">
-            <p className="font-black">
+          <div className="text-xs sm:text-[13px] text-blue-950 space-y-1">
+            <p className="font-bold">
               Descarga tu ficha de estudio para guardarla o llevarla a clase
             </p>
-            <p className="font-medium text-[#1A1A1A]/85 leading-snug">
+            <p className="font-medium text-blue-900/85 leading-snug">
               Guarda el archivo <strong>PDF limpio</strong> directamente en la memoria de tu celular o computador, o copia todo el texto ordenado para pegarlo en tu procesador de texto favorito.
             </p>
           </div>
@@ -139,7 +139,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({
 
         {/* Estado interactivo de la acción */}
         {statusMessage && (
-          <div className="p-2.5 bg-[#FFE66D] rounded-xl border-2 border-[#1A1A1A] text-xs font-black text-[#1A1A1A] text-center shadow-[2px_2px_0px_#1A1A1A] animate-in fade-in duration-150">
+          <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-xs font-bold text-emerald-900 text-center animate-in fade-in duration-150">
             {statusMessage}
           </div>
         )}
@@ -151,7 +151,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({
             type="button"
             onClick={handleDownloadPdf}
             disabled={isGeneratingPdf}
-            className="neo-btn p-3.5 bg-[#A8E6CF] hover:bg-[#96dfc3] disabled:opacity-70 text-[#1A1A1A] rounded-2xl border-2 border-[#1A1A1A] font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 shadow-[4px_4px_0px_#1A1A1A] cursor-pointer text-center transition-all"
+            className="p-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 text-white rounded-2xl border border-blue-600 font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 shadow-md cursor-pointer text-center transition-all active:scale-98"
           >
             <div className="flex items-center gap-2">
               {isGeneratingPdf ? (
@@ -161,7 +161,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({
                 </>
               ) : downloadSuccess ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-900 stroke-[3]" />
+                  <Check className="w-4 h-4 text-emerald-200 stroke-[3]" />
                   <span>¡PDF Descargado!</span>
                 </>
               ) : (
@@ -171,7 +171,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({
                 </>
               )}
             </div>
-            <span className="text-[10px] font-bold text-[#1A1A1A]/70">
+            <span className="text-[10px] font-medium text-blue-100">
               Archivo .pdf listo para guardar
             </span>
           </button>
@@ -180,12 +180,12 @@ export const PrintModal: React.FC<PrintModalProps> = ({
           <button
             type="button"
             onClick={handleCopy}
-            className="neo-btn p-3.5 bg-[#FFE66D] hover:bg-[#fedc44] text-[#1A1A1A] rounded-2xl border-2 border-[#1A1A1A] font-black text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 shadow-[4px_4px_0px_#1A1A1A] cursor-pointer text-center transition-all"
+            className="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl border border-slate-200 font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 shadow-2xs cursor-pointer text-center transition-all active:scale-98"
           >
             <div className="flex items-center gap-2">
               {copiedSuccess ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-900 stroke-[3]" />
+                  <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
                   <span>¡Todo Copiado!</span>
                 </>
               ) : (
@@ -195,7 +195,7 @@ export const PrintModal: React.FC<PrintModalProps> = ({
                 </>
               )}
             </div>
-            <span className="text-[10px] font-bold text-[#1A1A1A]/70">
+            <span className="text-[10px] font-medium text-slate-500">
               Para Word, Docs o WhatsApp
             </span>
           </button>

@@ -42,7 +42,7 @@ import {
 import { HomePage } from './components/HomePage';
 import { HamsterLoadingTransition } from './components/HamsterLoadingTransition';
 import { LogoutLoadingTransition } from './components/LogoutLoadingTransition';
-import { StickyNavbar, HeroBanner } from './components/Header';
+import { StickyNavbar } from './components/Header';
 import { InputZone } from './components/InputZone';
 import { SubjectsSidebar } from './components/SubjectsSidebar';
 import { TaskSelector } from './components/TaskSelector';
@@ -544,7 +544,7 @@ export default function App() {
             onLogout={handleLogout}
           />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
         {/* Modal para solicitar inicio de sesión */}
         <LoginPromptModal
           isOpen={isLoginModalOpen}
@@ -669,76 +669,107 @@ export default function App() {
               </button>
             </div>
 
-            {/* Banner Hero Escolar Compacto Bento */}
-            <HeroBanner
-              gradeLevel={gradeLevel}
-              onGradeLevelChange={setGradeLevel}
-              selectedSubjectId={selectedSubjectId}
-              isLoading={isLoading}
-            />
+            {/* Dual-Pane Studio Layout (Axiom AI / Claude Canvas) — Proporción equilibrada 50/50 sin scroll forzado */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Panel Izquierdo: Tarjeta Unificada de Entrada y Controles (lg:col-span-6) */}
+              <div className="lg:col-span-6 space-y-4 no-print">
+                {/* En móvil (< lg), si ya hay resultado y el formulario está colapsado, muestra la barra compacta */}
+                {isFormCollapsed && result ? (
+                  <div className="lg:hidden mb-2">
+                    <div className="h-[48px] max-h-[50px] px-3.5 py-1.5 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-2 transition-all">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span
+                          className="px-2 py-0.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 shrink-0 flex items-center gap-1 shadow-xs"
+                          style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
+                        >
+                          <span>{getSubjectById(selectedSubjectId).icon}</span>
+                          <span>{getSubjectById(selectedSubjectId).shortName}</span>
+                        </span>
+                        <span className="text-xs font-medium text-slate-600 truncate">
+                          {textInput.trim()
+                            ? textInput.trim().length > 30
+                              ? `${textInput.trim().slice(0, 30)}...`
+                              : textInput.trim()
+                            : imageFile
+                            ? `📸 ${imageFile.name.slice(0, 25)}`
+                            : 'Consulta escolar analizada'}
+                        </span>
+                      </div>
 
-            <div className="no-print">
-              {/* Colapso Inteligente al recibir el resultado */}
-              {isFormCollapsed && result ? (
-                <div className="mb-4">
-                  <div className="h-[48px] max-h-[50px] px-3.5 py-1.5 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-2 transition-all">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span
-                        className="px-2 py-0.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 shrink-0 flex items-center gap-1 shadow-xs"
-                        style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
-                      >
-                        <span>{getSubjectById(selectedSubjectId).icon}</span>
-                        <span>{getSubjectById(selectedSubjectId).shortName}</span>
-                      </span>
-                      <span className="text-xs font-medium text-slate-600 truncate">
-                        {textInput.trim()
-                          ? textInput.trim().length > 40
-                            ? `${textInput.trim().slice(0, 40)}...`
-                            : textInput.trim()
-                          : imageFile
-                          ? `📸 ${imageFile.name.slice(0, 30)}`
-                          : 'Consulta escolar analizada'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setIsFormCollapsed(false)}
-                        className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 cursor-pointer flex items-center gap-1 transition-colors"
-                      >
-                        <span>✏️ Editar</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleReset}
-                        className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-600 text-xs font-medium rounded-xl border border-slate-200 cursor-pointer hidden xs:inline-flex items-center gap-1 transition-colors"
-                        title="Empezar una nueva tarea desde cero"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Nueva</span>
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setIsFormCollapsed(false)}
+                          className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 cursor-pointer flex items-center gap-1 transition-colors"
+                        >
+                          <span>✏️ Editar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleReset}
+                          className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-600 text-xs font-medium rounded-xl border border-slate-200 cursor-pointer inline-flex items-center gap-1 transition-colors"
+                          title="Empezar una nueva tarea desde cero"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Nueva</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Tarjeta Bento 1: Entrada de Tarea */}
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition-all">
-                    <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100 text-xs font-bold">
-                          Tu Consulta
+                ) : null}
+
+                {/* Tarjeta Studio Unificada: Cabecera de Materia + Nivel + Input + Opciones + Acción */}
+                <div className={`${isFormCollapsed && result ? 'hidden lg:block' : 'block'}`}>
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5 space-y-4">
+                    {/* Cabecera compacta integrada (sin Banner redundante) */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-base shrink-0 shadow-2xs"
+                          style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
+                        >
+                          {getSubjectById(selectedSubjectId).icon}
                         </span>
-                        <h3 className="text-sm font-bold text-slate-800">
-                          {getSubjectById(selectedSubjectId).name}
-                        </h3>
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block leading-none">
+                            Tu Consulta
+                          </span>
+                          <h2 className="text-sm sm:text-base font-bold text-slate-900 leading-tight mt-0.5">
+                            {getSubjectById(selectedSubjectId).name}
+                          </h2>
+                        </div>
                       </div>
-                      <span className="text-xs text-slate-400 hidden sm:inline">
-                        Texto o foto de tu cuaderno
-                      </span>
+
+                      {/* Switch compacto de Nivel Escolar (Primaria / Bachillerato) */}
+                      <div className="inline-flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200/80 text-[11px] font-bold shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setGradeLevel('primaria')}
+                          disabled={isLoading || isExhausted}
+                          className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all ${
+                            gradeLevel === 'primaria'
+                              ? 'bg-white text-blue-700 shadow-2xs border border-blue-100'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          🎒 Primaria
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setGradeLevel('secundaria')}
+                          disabled={isLoading || isExhausted}
+                          className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all ${
+                            gradeLevel === 'secundaria'
+                              ? 'bg-white text-blue-700 shadow-2xs border border-blue-100'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          🎓 Secundaria
+                        </button>
+                      </div>
                     </div>
 
+                    {/* Zona de Entrada (Texto + Foto) */}
                     <InputZone
                       text={textInput}
                       onTextChange={(t) => {
@@ -754,12 +785,9 @@ export default function App() {
                       disabled={isLoading || isExhausted}
                       isMediaRelevant={isSubjectVisualOrFormula(selectedSubjectId)}
                     />
-                  </div>
 
-                  {/* Tarjeta Bento 2: Opciones de Resolución (Dual Grid) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Selector de Tareas Adaptado */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 transition-all">
+                    {/* Separador sutil + Selector de Tareas en chips compactos */}
+                    <div className="pt-3 border-t border-slate-100">
                       <TaskSelector
                         selectedTasks={selectedTasks}
                         onToggleTask={handleToggleTask}
@@ -768,8 +796,8 @@ export default function App() {
                       />
                     </div>
 
-                    {/* Selector de Profundidad */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 transition-all">
+                    {/* Selector de Profundidad (Control Segmentado sin solapamientos) */}
+                    <div className="pt-3 border-t border-slate-100">
                       <ResponseDepthSelector
                         responseDepth={responseDepth}
                         onChange={(depth) => setResponseDepth(depth)}
@@ -777,42 +805,23 @@ export default function App() {
                         disabled={isLoading || isExhausted}
                       />
                     </div>
-                  </div>
 
-                  {/* Mensaje de Error si ocurre alguno */}
-                  {errorMessage && (
-                    <div className="flex items-start gap-3 p-4 bg-red-50 rounded-2xl border border-red-200 shadow-xs text-xs sm:text-sm font-semibold text-red-900">
-                      <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="leading-tight">{errorMessage}</p>
-                        {!currentUser ? (
-                          <button
-                            onClick={() => setIsLoginModalOpen(true)}
-                            className="mt-1.5 text-xs font-bold underline text-red-700 hover:text-red-900 cursor-pointer"
-                          >
-                            Haz clic aquí para identificarte con Google
-                          </button>
-                        ) : isExhausted ? (
-                          <button
-                            onClick={() => setIsTrialBlockedModalOpen(true)}
-                            className="mt-1.5 text-xs font-bold underline text-red-700 hover:text-red-900 cursor-pointer"
-                          >
-                            Haz clic aquí para ver cómo activar tu suscripción escolar
-                          </button>
-                        ) : null}
+                    {/* Mensaje de Error si ocurre */}
+                    {errorMessage && (
+                      <div className="flex items-start gap-2.5 p-3 bg-red-50 rounded-xl border border-red-200 text-xs font-semibold text-red-900">
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                        <p className="leading-snug flex-1">{errorMessage}</p>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Barra de Envío Bento */}
-                  <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
-                    <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                    {/* Botón Principal de Acción Integrado */}
+                    <div className="pt-2 flex items-center gap-2.5">
                       {(textInput || imageFile || result) && (
                         <button
                           type="button"
                           onClick={handleReset}
                           disabled={isLoading}
-                          className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-colors shrink-0"
+                          className="px-3.5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1.5 transition-colors shrink-0"
                           title="Limpiar formulario"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
@@ -824,22 +833,22 @@ export default function App() {
                         type="button"
                         onClick={handleSubmitReview}
                         disabled={isLoading || !isAtLeastOneTaskSelected || !hasInput || isExhausted}
-                        className={`flex-1 py-3 px-6 text-sm sm:text-base font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 transition-all ${
+                        className={`flex-1 py-3 px-5 text-sm sm:text-base font-bold rounded-xl cursor-pointer flex items-center justify-center gap-2 shadow-md disabled:opacity-50 transition-all active:scale-[0.99] ${
                           isExhausted
-                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100'
+                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed shadow-none'
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-200/80'
                         }`}
                       >
                         {isLoading ? (
                           <>
-                            <Sparkles className="w-5 h-5 animate-spin text-white" />
+                            <Sparkles className="w-4 h-4 animate-spin text-white" />
                             <span>Revisando tu tarea...</span>
                           </>
                         ) : isExhausted ? (
                           <span>Prueba completada (0 usos) 🚫</span>
                         ) : (
                           <>
-                            <Send className="w-5 h-5 text-white" />
+                            <Send className="w-4 h-4 text-white" />
                             <span>
                               {gradeLevel === 'primaria'
                                 ? 'Revisar mi tarea ahora'
@@ -849,114 +858,127 @@ export default function App() {
                         )}
                       </button>
                     </div>
-
-                    <div className="text-xs text-slate-400 flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-slate-100">
-                      <span>
-                        Materia: <strong className="text-slate-600">{getSubjectById(selectedSubjectId).shortName}</strong>
-                      </span>
-                      <span>
-                        Modo: <strong className="text-slate-600">{responseDepth === 'detailed' ? 'Detallado' : 'Resumido'}</strong>
-                      </span>
-                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Estado de Carga con Mensajes Rotativos (Único) */}
-            {isLoading && <LoadingState />}
+              {/* Panel Derecho: Ficha Interactiva de Estudio / Live Canvas (lg:col-span-6, Sticky en escritorio) */}
+              <div className="lg:col-span-6 lg:sticky lg:top-20 space-y-4">
+                {isLoading ? (
+                  <LoadingState />
+                ) : result ? (
+                  <div ref={resultsRef} className="space-y-4">
+                    {result.isSchoolRelated === false ? (
+                      <SchoolGuardrailCard
+                        rejectionReason={result.rejectionReason}
+                        onReset={() => {
+                          setResult(null);
+                          setIsFormCollapsed(false);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <CelebrationBurst
+                          triggerKey={result.timestamp}
+                          gradeLevel={gradeLevel}
+                          subjectName={getSubjectById(selectedSubjectId).shortName}
+                        />
 
-            {/* Contenedor de Resultados Escolares */}
-            {result && (
-              <div ref={resultsRef} className="pt-2 space-y-6">
-                {/* Si la consulta fue bloqueada por no corresponder al contexto escolar */}
-                {result.isSchoolRelated === false ? (
-                  <SchoolGuardrailCard
-                    rejectionReason={result.rejectionReason}
-                    onReset={() => {
-                      setResult(null);
-                      setIsFormCollapsed(false);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                  />
+                        <ResultsDisplay
+                          result={result}
+                          reloadedNotice={reloadedNotice}
+                          onClearReloadedNotice={() => setReloadedNotice(null)}
+                          currentUser={currentUser}
+                          selectedSubjectId={selectedSubjectId}
+                          gradeLevel={gradeLevel}
+                          copiedSuccess={copiedSuccess}
+                          onCopyNotes={handleCopyNotes}
+                          onPrint={handlePrint}
+                        />
+                      </>
+                    )}
+                  </div>
                 ) : (
-                  <>
-                    {/* Celebración animada con lluvia de estrellas al completar la tarea */}
-                    <CelebrationBurst
-                      triggerKey={result.timestamp}
-                      gradeLevel={gradeLevel}
-                      subjectName={getSubjectById(selectedSubjectId).shortName}
-                    />
-
-                    {/* Componente modular de Resultados con pestañas anti-fatiga de scroll */}
-                    <ResultsDisplay
-                      result={result}
-                      reloadedNotice={reloadedNotice}
-                      onClearReloadedNotice={() => setReloadedNotice(null)}
-                      currentUser={currentUser}
-                      selectedSubjectId={selectedSubjectId}
-                      gradeLevel={gradeLevel}
-                      copiedSuccess={copiedSuccess}
-                      onCopyNotes={handleCopyNotes}
-                      onPrint={handlePrint}
-                    />
-                  </>
+                  /* Estado Vacío Minimalista — Solo visible en escritorio (oculto en móvil para no ocupar espacio innecesario) */
+                  <div className="hidden lg:flex flex-col items-center justify-center text-center bg-white/70 rounded-2xl border border-dashed border-slate-300/90 p-10 min-h-[420px] space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-2xl shadow-2xs">
+                      📓
+                    </div>
+                    <div className="max-w-sm space-y-1.5">
+                      <h3 className="text-base font-bold text-slate-800">
+                        Tu ficha de estudio aparecerá aquí
+                      </h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Escribe tu consulta o sube una foto de tu cuaderno en el panel izquierdo y presiona{' '}
+                        <strong className="text-slate-700">
+                          {gradeLevel === 'primaria' ? 'Revisar mi tarea ahora' : 'Analizar y resolver tarea'}
+                        </strong>{' '}
+                        para ver la explicación paso a paso.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
-            )}
+            </div>
           </main>
         </div>
 
-        {/* Pie de página con blindaje legal, privacidad y soporte */}
-        <footer className="mt-16 pt-8 pb-10 border-t border-slate-200 text-center text-xs text-slate-600 space-y-4">
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/60 font-semibold text-indigo-700">
-              ✏️ Tutor-IA
-            </span>
-            <span className="text-slate-300">•</span>
-            <span className="font-medium text-slate-700">Herramienta pedagógica para Primaria y Secundaria</span>
-            <span className="text-slate-300">•</span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 font-semibold text-emerald-700">
-              Todas las materias escolares (18 asignaturas)
-            </span>
+        {/* Pie de página compacto con logotipo oficial preservado */}
+        <footer className="mt-6 pt-4 pb-20 lg:pb-6 border-t border-slate-200/80 text-center text-xs text-slate-500 space-y-2.5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            {/* Logotipo oficial intacto */}
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/logo_full.jpg"
+                alt="Tutor-IA"
+                className="h-7 w-auto object-contain select-none"
+                draggable={false}
+              />
+              <span className="hidden md:inline text-[11px] text-slate-400">
+                • Apoyo escolar en 18 asignaturas (Primaria y Secundaria)
+              </span>
+            </div>
+
+            {/* Enlaces legales compactos en una sola fila */}
+            <div className="flex items-center justify-center gap-3 text-[11px] font-semibold text-slate-600">
+              <button
+                type="button"
+                onClick={() => {
+                  setLegalModalTab('terms');
+                  setIsLegalModalOpen(true);
+                }}
+                className="hover:text-blue-600 cursor-pointer transition-colors"
+              >
+                Términos
+              </button>
+              <span className="text-slate-300">·</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLegalModalTab('privacy');
+                  setIsLegalModalOpen(true);
+                }}
+                className="hover:text-blue-600 cursor-pointer transition-colors"
+              >
+                Privacidad
+              </button>
+              <span className="text-slate-300">·</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLegalModalTab('support');
+                  setIsLegalModalOpen(true);
+                }}
+                className="hover:text-blue-600 cursor-pointer transition-colors"
+              >
+                Soporte
+              </button>
+            </div>
           </div>
 
-          {/* Enlaces Legales y de Soporte */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap pt-1">
-            <button
-              onClick={() => {
-                setLegalModalTab('terms');
-                setIsLegalModalOpen(true);
-              }}
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 active:scale-95 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-xs transition-all hover:border-slate-300 hover:text-indigo-600"
-            >
-              📄 Términos y Condiciones
-            </button>
-
-            <button
-              onClick={() => {
-                setLegalModalTab('privacy');
-                setIsLegalModalOpen(true);
-              }}
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 active:scale-95 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-xs transition-all hover:border-slate-300 hover:text-indigo-600"
-            >
-              🔒 Privacidad y Menores (Habeas Data)
-            </button>
-
-            <button
-              onClick={() => {
-                setLegalModalTab('support');
-                setIsLegalModalOpen(true);
-              }}
-              className="px-3 py-1.5 bg-white hover:bg-slate-50 active:scale-95 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer shadow-xs transition-all hover:border-slate-300 hover:text-indigo-600"
-            >
-              🎧 Contacto y Soporte
-            </button>
-          </div>
-
-          {/* Descargo legal pedagógico preventivo */}
-          <p className="text-[11px] text-slate-500 font-normal max-w-2xl mx-auto leading-relaxed pt-1">
-            <strong className="font-semibold text-slate-700">Aviso Legal & Pedagógico:</strong> Tutor-IA es un asistente inteligente de apoyo escolar complementario multidisciplinar (matemáticas, ciencias, humanidades y artes). Su uso es personal, individual y con fines formativos. No sustituye la labor de los docentes de aula ni certifica o garantiza calificaciones académicas oficiales.
+          <p className="text-[10px] sm:text-[11px] text-slate-400 leading-snug max-w-3xl mx-auto">
+            Asistente de apoyo escolar complementario con fines formativos. No sustituye la labor docente ni garantiza calificaciones oficiales.
           </p>
         </footer>
       </div>

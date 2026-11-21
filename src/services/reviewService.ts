@@ -522,6 +522,26 @@ async function reviewHomeworkInBrowser({
   let responseText = '';
   let resolvedProvider: 'groq' | 'pollinations' = 'groq';
 
+  const isCalculationSubject = CALCULATION_SUBJECTS.includes(subject);
+  let wikiReturned404 = false;
+
+  // 0. Si es consulta teórica de texto, intentar primero Wikipedia REST API (0 tokens Groq)
+  if (!hasImage && !isCalculationSubject && cleanText) {
+    const cleanTopic = extractKeyTopic(cleanText) || cleanText;
+    const wikiResult = await tryResolveTheoreticalWithWikipedia({
+      cleanTopic,
+      subject,
+      gradeLevel,
+      responseDepth,
+      tasks,
+      startTime,
+    });
+    if (wikiResult) {
+      return wikiResult;
+    }
+    wikiReturned404 = true;
+  }
+
   // 1. NIVEL 1: Groq Cloud reservado exclusivamente para:
   // - Tareas con foto/PDF (visión)
   // - Materias de cálculo y paso a paso (Matemáticas, Física, Química)

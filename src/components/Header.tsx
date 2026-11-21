@@ -135,7 +135,7 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-17 flex items-center justify-between gap-3">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
         {/* Lado Izquierdo: Logotipo Oficial Editorial (Estático, solo visual, no interactivo) */}
         <div className="flex items-center shrink-0 select-none">
           <img
@@ -178,19 +178,19 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
           ) : usage.isTrialActive ? (
             <button
               onClick={onOpenPayment}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200/90 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/90 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition-all active:scale-95"
               title="Día de prueba gratuito activo (24 horas)"
             >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               <span>Prueba gratis: {usage.trialHoursRemaining ?? 24}h restantes</span>
             </button>
           ) : (
             <button
               onClick={onOpenPayment}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-slate-900 rounded-xl text-xs font-bold cursor-pointer shadow-xs transition-all active:scale-95 border border-amber-300/80"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs transition-all active:scale-95 border border-blue-600"
               title="Activar plan escolar mensual por $10.000 COP o canjear código"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-950" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>Activar Plan ($10.000 COP)</span>
             </button>
           )}
@@ -316,28 +316,35 @@ export interface HeroBannerProps {
 export const HeroBanner: React.FC<HeroBannerProps> = ({
   selectedSubjectId = 'lengua',
 }) => {
+  const subject = getSubjectById(selectedSubjectId);
   return (
-    <div className="relative rounded-2xl bg-white border border-slate-200/90 shadow-xs p-4 sm:p-5 overflow-hidden transition-all">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 max-w-5xl">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-lg shrink-0">
-            📚
+    <div className="rounded-2xl bg-white border border-slate-200/90 shadow-xs p-3.5 sm:px-5 sm:py-3.5 transition-all">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-lg shrink-0 shadow-2xs"
+            style={{ backgroundColor: subject.color }}
+          >
+            {subject.icon}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wide">
                 Tutor Escolar Inteligente
               </span>
               <span className="text-slate-300">•</span>
               <span className="text-xs text-slate-500 font-medium">
-                Materia activa: <strong className="text-slate-800">{getSubjectById(selectedSubjectId).name}</strong>
+                Materia activa: <strong className="text-slate-800">{subject.name}</strong>
               </span>
             </div>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 leading-tight mt-0.5">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-800 truncate">
               Escribe o sube tu tarea escolar para analizarla paso a paso
             </h2>
           </div>
         </div>
+        <span className="text-[11px] font-bold px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl shrink-0 hidden md:inline-flex items-center gap-1">
+          <span>⚡</span> Dual-Pane Studio
+        </span>
       </div>
     </div>
   );
