@@ -625,3 +625,15 @@
   border: solid 5px #000000;
   animation-delay: 0.1s;
 }
+
+/* Accesibilidad: respetar prefers-reduced-motion (dev-quirurgico-motion-opcional) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

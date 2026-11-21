@@ -19,19 +19,36 @@ service cloud.firestore {
       );
     }
 
-    // Colección de usuarios para administración y perfil
+    // Colección de usuarios: aislamiento estricto y bloqueo de auto-elevación de rol
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.role == 'student' &&
+        request.resource.data.isSubscriptionActive == false
+      );
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.role != 'admin'
+      );
       allow delete: if isAdmin();
     }
 
-    // Colección de códigos de activación (30 días)
+    // Colección de códigos de activación (30 días):
+    // Solo admin puede listar, crear o eliminar códigos; un estudiante solo puede consultar
+    // el código exacto que escribe y marcarlo como canjeado para su propio UID una sola vez.
     match /activation_codes/{codeId} {
-      // Acceso autorizado para validación, canje y administración de códigos
-      allow read, write: if isAuthenticated();
+      allow list, create, delete: if isAdmin();
+      allow get: if isAuthenticated();
+      allow update: if isAdmin() || (
+        isAuthenticated() &&
+        resource.data.isRedeemed == false &&
+        request.resource.data.isRedeemed == true &&
+        request.resource.data.redeemedByUid == request.auth.uid &&
+        request.resource.data.code == resource.data.code
+      );
     }
   }
 }

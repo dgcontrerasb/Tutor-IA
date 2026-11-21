@@ -21,7 +21,17 @@ import {
   DocumentData,
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { db, UserProfile, setCachedUserProfile, getCachedUserProfile } from './firebase';
+import { auth, db, UserProfile, setCachedUserProfile, getCachedUserProfile } from './firebase';
+
+async function getAdminAuthHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (token) {
+      return { ...extra, Authorization: `Bearer ${token}` };
+    }
+  } catch {}
+  return extra;
+}
 
 export interface ActivationCode {
   id: string;
@@ -146,9 +156,10 @@ export async function createActivationCode(
 
   // 2. Persistir en servidor central
   try {
+    const headers = await getAdminAuthHeaders({ 'Content-Type': 'application/json' });
     fetch('/api/admin/codes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(newCode),
       signal: AbortSignal.timeout(3000),
     }).catch(() => {});
@@ -174,7 +185,8 @@ export async function fetchActivationCodes(limitCount: number = 50): Promise<Act
 
   // 1. Consultar servidor central permanente
   try {
-    const res = await fetch('/api/admin/codes', { signal: AbortSignal.timeout(3000) });
+    const headers = await getAdminAuthHeaders();
+    const res = await fetch('/api/admin/codes', { headers, signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const data = await res.json();
       if (data.codes && Array.isArray(data.codes)) {
@@ -253,8 +265,10 @@ export async function deleteActivationCode(codeString: string): Promise<void> {
   saveLocalStoredCodes(updated);
 
   try {
+    const headers = await getAdminAuthHeaders();
     fetch(`/api/admin/codes/${encodeURIComponent(normalized)}`, {
       method: 'DELETE',
+      headers,
       signal: AbortSignal.timeout(3000),
     }).catch(() => {});
   } catch {}
@@ -452,7 +466,8 @@ export async function fetchAllUsers(limitCount: number = 100): Promise<UserProfi
 
   // 1. Consultar servidor central permanente (incluye lisgeo2803@gmail.com y usuarios de cualquier navegador)
   try {
-    const res = await fetch('/api/admin/users', { signal: AbortSignal.timeout(3000) });
+    const headers = await getAdminAuthHeaders();
+    const res = await fetch('/api/admin/users', { headers, signal: AbortSignal.timeout(3000) });
     if (res.ok) {
       const data = await res.json();
       if (data.users && Array.isArray(data.users)) {

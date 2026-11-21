@@ -55,10 +55,10 @@ server/
 - Guardrail escolar ético: Reglas de rechazo de consultas comerciales o inapropiadas en `src/components/SchoolGuardrailCard.tsx`.
 
 ## 6. Seguridad — dónde viven los secretos y qué está protegido
-- Variables de entorno usadas: `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `GROQ_API_KEY`, `VITE_FIREBASE_*`, `VITE_GROQ_API_KEY`.
-- ¿Dónde se usan?: Las credenciales maestras y secretas se validan en el backend (`server.ts` / serverless). Se debe evitar almacenar keys críticas en el frontend.
-- Reglas de acceso a datos: Configuradas en `firestore.rules` con restricción estricta por usuario (`request.auth != null && request.auth.uid == userId`).
-- Último chequeo de seguridad hecho: 2026-11-21 — Auditoría bajo skill `dev-quirurgico`, validación de `firestore.rules` y tipado estricto.
+- Variables de entorno usadas: `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `GROQ_API_KEY`, `VITE_FIREBASE_*` (retirado `VITE_GROQ_API_KEY` del bundle público).
+- ¿Dónde se usan?: Las API keys de LLM (`GROQ_API_KEY`) se consumen solo en el backend (`server.ts` / serverless). Todas las rutas `/api/admin/*` validan Bearer token RS256 de Firebase + correo de administrador.
+- Reglas de acceso a datos: Blindadas en `firestore.rules` (bloqueo de auto-elevación de `role` en `users/{userId}` y acceso restringido de listado/creación/eliminación en `activation_codes/{codeId}` solo a admin).
+- Último chequeo de seguridad hecho: 2026-11-21 — Blindaje completo Prioridad 1 (`firestore.rules`, `/api/admin/*` y remoción de `VITE_GROQ_API_KEY`).
 
 ## 7. Herramientas/servicios en uso y su tier
 - Vercel: Free Hobby ($0 USD / mes, 100GB ancho de banda).
@@ -68,6 +68,9 @@ server/
 - Pollinations AI: Gateway público gratuito ($0 USD, respaldo de emergencia).
 
 ## 8. Historial corto de cambios recientes
+- 2026-11-21: Prioridad 3 completada: `OnboardingTourModal.tsx` (tour de 3 pasos disparado solo al iniciar sesión la primera vez, reabrible desde cabecera) y Service Worker PWA básico (`public/sw.js` registrado en `main.tsx`).
+- 2026-11-21: Optimización Prioridad 2: `React.lazy` en 7 modales pesados (-500 kB / -35% gzip en carga inicial), `@media (prefers-reduced-motion: reduce)` en `index.css` y unificación visual de `CelebrationBurst`, `CorrectionCard` y `RecentHomeworksHistory`.
+- 2026-11-21: Blindaje de seguridad Prioridad 1: `firestore.rules` (anti-elevación de rol y protección de códigos), autenticación RS256 admin en `/api/admin/*` y retiro de `VITE_GROQ_API_KEY` del frontend.
 - 2026-11-21: Rediseño Zero-Scroll de `HomePage.tsx` (Foco Central + Selector de Nivel Primaria/Secundaria sin cajas ni píldoras, pie compacto PC/móvil) y deduplicación por correo en `adminService.ts` preservando rol admin.
 - 2026-11-21: Rediseño completo al estilo **Dual-Pane Study Studio (Axiom AI / Claude Canvas)**: layout en 2 paneles sin scroll vertical, paleta azul cobalto + ámbar, modernización de modales, píldoras y chips interactivos. Logotipo y nombre Tutor-IA preservados intactos.
 - 2026-11-21: Creación de `PROJECT_CONTEXT.md` oficial y corrección de tipado en `reviewService.ts` (`isCalculationSubject` y `wikiReturned404`). `npm run lint` y `build` 100% limpios.

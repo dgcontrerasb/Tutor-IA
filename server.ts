@@ -100,7 +100,7 @@ async function getGooglePublicCerts(): Promise<Record<string, string>> {
  * Valida la autenticidad, vigencia y firma criptográfica asimétrica (RS256)
  * del Bearer token de Firebase emitido para este proyecto.
  */
-async function verifyFirebaseToken(authHeader?: string): Promise<{ valid: boolean; uid?: string; error?: string }> {
+async function verifyFirebaseToken(authHeader?: string): Promise<{ valid: boolean; uid?: string; email?: string; error?: string }> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { valid: false, error: 'Acceso no autorizado: debes identificarte con tu cuenta escolar de Google para revisar tareas.' };
   }
@@ -166,7 +166,7 @@ async function verifyFirebaseToken(authHeader?: string): Promise<{ valid: boolea
       return { valid: false, error: 'Identificador de estudiante ausente en la credencial.' };
     }
 
-    return { valid: true, uid };
+    return { valid: true, uid, email: typeof payload.email === 'string' ? payload.email : undefined };
   } catch (_err) {
     return { valid: false, error: 'Error al comprobar credenciales de acceso.' };
   }
@@ -453,8 +453,24 @@ function saveServerCodes(codes: any[]): void {
   }
 }
 
-// 1. Obtener lista de usuarios registrados
-app.get('/api/admin/users', (_req, res) => {
+const ADMIN_EMAIL_LOWER = (process.env.ADMIN_EMAIL || 'dgcontrerasb@gmail.com').toLowerCase().trim();
+
+async function requireAdmin(req: express.Request, res: express.Response): Promise<boolean> {
+  const authResult = await verifyFirebaseToken(req.headers.authorization);
+  if (!authResult.valid) {
+    res.status(401).json({ success: false, message: authResult.error || 'No autorizado.' });
+    return false;
+  }
+  if ((authResult.email || '').toLowerCase().trim() !== ADMIN_EMAIL_LOWER) {
+    res.status(403).json({ success: false, message: 'Acceso restringido al administrador.' });
+    return false;
+  }
+  return true;
+}
+
+// 1. Obtener lista de usuarios registrados (Solo Administrador)
+app.get('/api/admin/users', async (req, res) => {
+  if (!(await requireAdmin(req, res))) return;
   const users = getServerUsers();
   res.json({ success: true, users });
 });
@@ -486,14 +502,16 @@ app.post('/api/users/sync', (req, res) => {
   res.json({ success: true, user: existingIdx >= 0 ? users[existingIdx] : users[0] });
 });
 
-// 3. Obtener lista de códigos de activación
-app.get('/api/admin/codes', (_req, res) => {
+// 3. Obtener lista de códigos de activación (Solo Administrador)
+app.get('/api/admin/codes', async (req, res) => {
+  if (!(await requireAdmin(req, res))) return;
   const codes = getServerCodes();
   res.json({ success: true, codes });
 });
 
-// 4. Crear código de activación
-app.post('/api/admin/codes', (req, res) => {
+// 4. Crear código de activación (Solo Administrador)
+app.post('/api/admin/codes', async (req, res) => {
+  if (!(await requireAdmin(req, res))) return;
   const { code, durationDays, createdBy } = req.body;
   if (!code) {
     return res.status(400).json({ success: false, message: 'Código requerido' });
@@ -590,8 +608,9 @@ app.post('/api/codes/redeem', (req, res) => {
   });
 });
 
-// 6. Eliminar código
-app.delete('/api/admin/codes/:code', (req, res) => {
+// 6. Eliminar código (Solo Administrador)
+app.delete('/api/admin/codes/:code', async (req, res) => {
+  if (!(await requireAdmin(req, res))) return;
   const codeToDelete = (req.params.code || '').trim().toUpperCase();
   const codes = getServerCodes();
   const updated = codes.filter((c) => c.code !== codeToDelete && c.id !== codeToDelete);

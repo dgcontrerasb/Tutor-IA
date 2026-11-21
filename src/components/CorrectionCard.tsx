@@ -27,13 +27,13 @@ export const CorrectionCard: React.FC<CorrectionCardProps> = ({ data }) => {
   const getBadgeColor = (type: string) => {
     switch (type) {
       case 'tilde':
-        return 'bg-[#FFE66D] text-[#1A1A1A] border-[#1A1A1A]';
+        return 'bg-amber-50 text-amber-900 border-amber-200';
       case 'ortografia':
-        return 'bg-[#FF8B94] text-[#1A1A1A] border-[#1A1A1A]';
+        return 'bg-rose-50 text-rose-900 border-rose-200';
       case 'puntuacion':
-        return 'bg-[#A0E7E5] text-[#1A1A1A] border-[#1A1A1A]';
+        return 'bg-sky-50 text-sky-900 border-sky-200';
       default:
-        return 'bg-[#A8E6CF] text-[#1A1A1A] border-[#1A1A1A]';
+        return 'bg-emerald-50 text-emerald-900 border-emerald-200';
     }
   };
 

@@ -548,10 +548,9 @@ async function reviewHomeworkInBrowser({
   // - Consultas donde Wikipedia devolvió 404 (término no encontrado)
   const shouldUseGroq = hasImage || isCalculationSubject || wikiReturned404;
 
-  const rawGroq = (
-    (typeof window !== 'undefined' ? localStorage.getItem('cp_debug_groq_key') : null) ||
-    (import.meta.env.VITE_GROQ_API_KEY as string | undefined)
-  );
+  // Seguridad (Regla 5): No inyectar VITE_GROQ_API_KEY en el bundle público del frontend.
+  // La clave de producción se usa exclusivamente en el backend (/api/review -> process.env.GROQ_API_KEY).
+  const rawGroq = typeof window !== 'undefined' ? localStorage.getItem('cp_debug_groq_key') : null;
   const viteGroqKey = rawGroq ? rawGroq.trim().replace(/^["'`]|["'`]$/g, '').replace(/^bearer\s+/i, '').trim() : '';
 
   if (viteGroqKey && shouldUseGroq) {

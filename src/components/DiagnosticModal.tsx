@@ -73,12 +73,12 @@ export function DiagnosticModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [customGroqKey, setCustomGroqKey] = useState<string>(() => {
-    return localStorage.getItem('cp_debug_groq_key') || (import.meta.env.VITE_GROQ_API_KEY as string) || '';
+    return localStorage.getItem('cp_debug_groq_key') || '';
   });
   const [showKeyInputs, setShowKeyInputs] = useState(false);
 
   const activeSanitized = sanitizeGroqKey(
-    customGroqKey || (typeof window !== 'undefined' ? localStorage.getItem('cp_debug_groq_key') : null) || (import.meta.env.VITE_GROQ_API_KEY as string) || ''
+    customGroqKey || (typeof window !== 'undefined' ? localStorage.getItem('cp_debug_groq_key') : null) || ''
   );
 
   const [diagnostics, setDiagnostics] = useState<ServiceDiagnostic[]>([
@@ -116,11 +116,10 @@ export function DiagnosticModal() {
     // 1. TEST GROQ: Inspección de modelos oficiales y diagnóstico en vivo
     updateServiceState(0, { status: 'testing', message: 'Consultando modelos activos en Groq Cloud...' });
 
-    // Prioridad de lectura: 1. Input/localStorage -> 2. import.meta.env
+    // Lectura segura solo desde input manual de diagnóstico (nunca VITE_GROQ_API_KEY en bundle)
     const rawCandidate =
       customGroqKey ||
       (typeof window !== 'undefined' ? localStorage.getItem('cp_debug_groq_key') : null) ||
-      (import.meta.env.VITE_GROQ_API_KEY as string) ||
       '';
 
     const { cleanKey: groqKey, isValidFormat, maskedPreview, error: formatError } = sanitizeGroqKey(rawCandidate);

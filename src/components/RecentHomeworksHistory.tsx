@@ -231,8 +231,8 @@ export const RecentHomeworksHistory: React.FC<RecentHomeworksHistoryProps> = ({
           aria-label="Abrir Mi Cuaderno"
         >
           {/* Icono de Libreta Escolar */}
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-            <BookOpen className="w-4 h-4 text-indigo-600 group-hover:scale-105 transition-transform" />
+          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 text-blue-600 group-hover:scale-105 transition-transform" />
           </div>
 
           {/* Texto descriptivo */}
@@ -246,7 +246,7 @@ export const RecentHomeworksHistory: React.FC<RecentHomeworksHistoryProps> = ({
           </div>
 
           {/* Insignia con el conteo de fichas guardadas */}
-          <div className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+          <div className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
             {items.length}
           </div>
         </button>

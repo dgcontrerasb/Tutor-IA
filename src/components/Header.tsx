@@ -37,6 +37,7 @@ export interface HeaderProps {
   isSyncing?: boolean;
   onGoHome?: () => void;
   onLogout?: () => void;
+  onOpenTour?: () => void;
 }
 
 /**
@@ -56,6 +57,7 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
   isSyncing,
   onGoHome,
   onLogout,
+  onOpenTour,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -195,6 +197,18 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
             </button>
           )}
 
+          {/* Botón Ver Guía Rápida */}
+          {onOpenTour && user && (
+            <button
+              onClick={onOpenTour}
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer border border-slate-200 transition-all"
+              title="Ver guía rápida de uso"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <span>Guía</span>
+            </button>
+          )}
+
           {/* Botón Legal & Soporte */}
           {onOpenLegal && (
             <button
@@ -202,7 +216,7 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
               className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer border border-slate-200 transition-all"
               title="Términos escolares, privacidad y soporte"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <HelpCircle className="w-3.5 h-3.5 text-blue-600 shrink-0" />
               <span>Ayuda</span>
             </button>
           )}
@@ -261,6 +275,22 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-amber-700" />
+                  </button>
+                )}
+
+                {onOpenTour && user && (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenTour();
+                    }}
+                    className="w-full p-2.5 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 text-left text-xs font-bold text-blue-900 flex items-center justify-between cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <span>Ver guía rápida de uso</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-blue-600" />
                   </button>
                 )}
 

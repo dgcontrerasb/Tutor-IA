@@ -6,7 +6,7 @@
  * Punto 3: 3 consultas de prueba gratuitas para usuarios nuevos y bloqueo al consumirlas.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import {
   Send,
   AlertCircle,
@@ -49,11 +49,7 @@ import { TaskSelector } from './components/TaskSelector';
 import { ResponseDepthSelector } from './components/ResponseDepthSelector';
 import { LoadingState } from './components/LoadingState';
 import { ResultsDisplay } from './components/ResultsDisplay';
-import { LoginPromptModal } from './components/LoginPromptModal';
-import { TrialBlockedModal } from './components/TrialBlockedModal';
-import { PaymentModal } from './components/PaymentModal';
-import { AdminPanelModal } from './components/AdminPanelModal';
-import { LegalModal, LegalTab } from './components/LegalModal';
+import type { LegalTab } from './components/LegalModal';
 import { SchoolGuardrailCard } from './components/SchoolGuardrailCard';
 import {
   RecentHomeworksHistory,
@@ -63,10 +59,18 @@ import {
 import { getSubjectById, isSubjectVisualOrFormula } from './data/schoolSubjects';
 import { getCleanDisplayName } from './components/AuthBar';
 import { CelebrationBurst } from './components/CelebrationBurst';
-import { PrintModal } from './components/PrintModal';
-import { DiagnosticModal } from './components/DiagnosticModal';
 import { useModals } from './hooks/useModals';
 import { useAuthUser } from './hooks/useAuthUser';
+
+// Carga diferida de modales pesados (reduce el bundle inicial separando jsPDF, html2canvas y paneles)
+const LoginPromptModal = lazy(() => import('./components/LoginPromptModal').then((m) => ({ default: m.LoginPromptModal })));
+const TrialBlockedModal = lazy(() => import('./components/TrialBlockedModal').then((m) => ({ default: m.TrialBlockedModal })));
+const PaymentModal = lazy(() => import('./components/PaymentModal').then((m) => ({ default: m.PaymentModal })));
+const AdminPanelModal = lazy(() => import('./components/AdminPanelModal').then((m) => ({ default: m.AdminPanelModal })));
+const LegalModal = lazy(() => import('./components/LegalModal').then((m) => ({ default: m.LegalModal })));
+const PrintModal = lazy(() => import('./components/PrintModal').then((m) => ({ default: m.PrintModal })));
+const DiagnosticModal = lazy(() => import('./components/DiagnosticModal').then((m) => ({ default: m.DiagnosticModal })));
+const OnboardingTourModal = lazy(() => import('./components/OnboardingTourModal').then((m) => ({ default: m.OnboardingTourModal })));
 
 export default function App() {
   // Hooks desacoplados de autenticación y modales
@@ -127,6 +131,31 @@ export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'workspace'>('home');
   const [isSigningInGoogle, setIsSigningInGoogle] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+
+  // Disparar el tour inicial ÚNICAMENTE cuando el usuario ha iniciado sesión en el workspace por primera vez
+  useEffect(() => {
+    if (!currentUser || authLoading || currentView !== 'workspace' || isSigningInGoogle || isLoggingOut) {
+      return;
+    }
+    try {
+      const storageKey = `tutor_ia_onboarding_seen_${currentUser.uid}`;
+      if (localStorage.getItem(storageKey) !== 'true') {
+        setIsOnboardingOpen(true);
+      }
+    } catch {
+      // Ignorar si localStorage no está disponible
+    }
+  }, [currentUser, authLoading, currentView, isSigningInGoogle, isLoggingOut]);
+
+  const handleCloseOnboarding = () => {
+    setIsOnboardingOpen(false);
+    if (currentUser?.uid) {
+      try {
+        localStorage.setItem(`tutor_ia_onboarding_seen_${currentUser.uid}`, 'true');
+      } catch {}
+    }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -542,87 +571,111 @@ export default function App() {
             }}
             onGoHome={() => setCurrentView('home')}
             onLogout={handleLogout}
+            onOpenTour={() => setIsOnboardingOpen(true)}
           />
 
       <div className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
-        {/* Modal para solicitar inicio de sesión */}
-        <LoginPromptModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setIsLoginModalOpen(false)}
-        />
+        <Suspense fallback={null}>
+          {/* Modal para solicitar inicio de sesión */}
+          {isLoginModalOpen && (
+            <LoginPromptModal
+              isOpen={isLoginModalOpen}
+              onClose={() => setIsLoginModalOpen(false)}
+            />
+          )}
 
-        {/* Modal de Bloqueo tras consumir el día de prueba (Punto 3) */}
-        <TrialBlockedModal
-          isOpen={(isTrialBlockedModalOpen || isExhausted) && !isPaymentModalOpen}
-          onClose={() => {
-            setIsTrialBlockedModalOpen(false);
-          }}
-          onGoHome={() => {
-            setIsTrialBlockedModalOpen(false);
-            setIsPaymentModalOpen(false);
-            setCurrentView('home');
-          }}
-          onOpenPayment={() => {
-            setIsTrialBlockedModalOpen(false);
-            setIsPaymentModalOpen(true);
-          }}
-        />
+          {/* Modal de Bloqueo tras consumir el día de prueba (Punto 3) */}
+          {((isTrialBlockedModalOpen || isExhausted) && !isPaymentModalOpen) && (
+            <TrialBlockedModal
+              isOpen={(isTrialBlockedModalOpen || isExhausted) && !isPaymentModalOpen}
+              onClose={() => {
+                setIsTrialBlockedModalOpen(false);
+              }}
+              onGoHome={() => {
+                setIsTrialBlockedModalOpen(false);
+                setIsPaymentModalOpen(false);
+                setCurrentView('home');
+              }}
+              onOpenPayment={() => {
+                setIsTrialBlockedModalOpen(false);
+                setIsPaymentModalOpen(true);
+              }}
+            />
+          )}
 
-        {/* Modal de Pago vía WhatsApp con QR de $10.000 COP y Canje de Código (Punto 4) */}
-        <PaymentModal
-          isOpen={isPaymentModalOpen}
-          onClose={() => setIsPaymentModalOpen(false)}
-          onGoHome={() => {
-            setIsPaymentModalOpen(false);
-            setIsTrialBlockedModalOpen(false);
-            setCurrentView('home');
-          }}
-          userEmail={currentUser?.email}
-          userUid={currentUser?.uid}
-          userName={currentUser?.displayName}
-          onCheckActivation={handleRefreshProfile}
-        />
+          {/* Modal de Pago vía WhatsApp con QR de $10.000 COP y Canje de Código (Punto 4) */}
+          {isPaymentModalOpen && (
+            <PaymentModal
+              isOpen={isPaymentModalOpen}
+              onClose={() => setIsPaymentModalOpen(false)}
+              onGoHome={() => {
+                setIsPaymentModalOpen(false);
+                setIsTrialBlockedModalOpen(false);
+                setCurrentView('home');
+              }}
+              userEmail={currentUser?.email}
+              userUid={currentUser?.uid}
+              userName={currentUser?.displayName}
+              onCheckActivation={handleRefreshProfile}
+            />
+          )}
 
-        {/* Panel de Control de Administrador (Punto 5) */}
-        <AdminPanelModal
-          isOpen={isAdminModalOpen}
-          onClose={() => setIsAdminModalOpen(false)}
-          adminEmail={currentUser?.email}
-        />
+          {/* Panel de Control de Administrador (Punto 5) */}
+          {isAdminModalOpen && (
+            <AdminPanelModal
+              isOpen={isAdminModalOpen}
+              onClose={() => setIsAdminModalOpen(false)}
+              adminEmail={currentUser?.email}
+            />
+          )}
 
-        {/* Modal de Aspectos Legales, Privacidad y Soporte */}
-        <LegalModal
-          isOpen={isLegalModalOpen}
-          onClose={() => setIsLegalModalOpen(false)}
-          initialTab={legalModalTab}
-          onOpenPayment={() => {
-            setIsLegalModalOpen(false);
-            setIsPaymentModalOpen(true);
-          }}
-          isSubscriptionActive={usage.isSubscriptionActive}
-        />
+          {/* Modal de Aspectos Legales, Privacidad y Soporte */}
+          {isLegalModalOpen && (
+            <LegalModal
+              isOpen={isLegalModalOpen}
+              onClose={() => setIsLegalModalOpen(false)}
+              initialTab={legalModalTab}
+              onOpenPayment={() => {
+                setIsLegalModalOpen(false);
+                setIsPaymentModalOpen(true);
+              }}
+              isSubscriptionActive={usage.isSubscriptionActive}
+            />
+          )}
 
-        {/* Modal de Impresión y Exportación a PDF Escolar */}
-        <PrintModal
-          isOpen={isPrintModalOpen}
-          onClose={() => setIsPrintModalOpen(false)}
-          result={result}
-          subjectName={getSubjectById(selectedSubjectId).name}
-          gradeLevel={gradeLevel}
-          studentName={getCleanDisplayName(currentUser)}
-          onCopyAllText={handleCopyNotes}
-        />
+          {/* Modal de Impresión y Exportación a PDF Escolar */}
+          {isPrintModalOpen && (
+            <PrintModal
+              isOpen={isPrintModalOpen}
+              onClose={() => setIsPrintModalOpen(false)}
+              result={result}
+              subjectName={getSubjectById(selectedSubjectId).name}
+              gradeLevel={gradeLevel}
+              studentName={getCleanDisplayName(currentUser)}
+              onCopyAllText={handleCopyNotes}
+            />
+          )}
+
+          {/* Guía rápida inicial (solo autenticados, primera vez o reabierta manualmente) */}
+          {isOnboardingOpen && currentUser && (
+            <OnboardingTourModal
+              isOpen={isOnboardingOpen}
+              onClose={handleCloseOnboarding}
+              studentName={getCleanDisplayName(currentUser).split(' ')[0]}
+            />
+          )}
+
+          {/* Componente Flotante de Diagnóstico Visual (Solo Administrador) */}
+          {(currentUser?.role === 'admin' || currentUser?.email?.toLowerCase() === 'dgcontrerasb@gmail.com') && (
+            <DiagnosticModal />
+          )}
+        </Suspense>
 
         {/* Botón Flotante y Modal 'Mi Cuaderno de Repaso' (Consultas Guardadas) */}
         <RecentHomeworksHistory
           onSelectSavedHomework={handleSelectSavedHomework}
           gradeLevel={gradeLevel}
         />
-
-        {/* Componente Flotante de Diagnóstico Visual (Solo Administrador: dgcontrerasb@gmail.com o rol admin) */}
-        {(currentUser?.role === 'admin' || currentUser?.email?.toLowerCase() === 'dgcontrerasb@gmail.com') && (
-          <DiagnosticModal />
-        )}
 
         {/* Contenedor Principal: Sidebar Izquierda + Área Central */}
         <div className={`flex flex-col lg:flex-row gap-5 items-start transition-all ${isExhausted ? 'filter blur-xs pointer-events-none select-none opacity-60' : ''}`}>
