@@ -162,62 +162,66 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Lado Derecho - Escritorio (md y superior): Botones directos */}
-        <div className="hidden md:flex items-center justify-end gap-2.5 shrink-0">
-          {/* Un solo botón inteligente de Plan Escolar / Días Restantes */}
+        {/* Lado Derecho - Escritorio (md y superior): Controles limpios sin marcos genéricos */}
+        <div className="hidden md:flex items-center justify-end gap-4 shrink-0">
+          {/* Visor discreto de Plan Escolar / Días Restantes (sin marco) */}
           {isSubscriptionActive ? (
             <button
+              type="button"
               onClick={onOpenPayment}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition-all active:scale-95 group"
+              className="flex items-center gap-1.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer transition-colors group"
               title="Clic para ver detalles de tu suscripción, renovar o canjear código"
             >
-              <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
-              <span>{isAdmin ? '365 días (Admin)' : `${remainingDays} ${remainingDays === 1 ? 'día restante' : 'días restantes'}`}</span>
-              <span className="text-[10px] bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded-md font-semibold ml-0.5 group-hover:bg-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span>{isAdmin ? '365 días' : `${remainingDays} ${remainingDays === 1 ? 'día' : 'días'}`}</span>
+              <span className="text-blue-600 group-hover:underline font-bold ml-0.5">
                 Renovar
               </span>
             </button>
           ) : usage.isTrialActive ? (
             <button
+              type="button"
               onClick={onOpenPayment}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200/90 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition-all active:scale-95"
+              className="flex items-center gap-1.5 py-1 text-xs font-semibold text-slate-600 hover:text-blue-600 cursor-pointer transition-colors"
               title="Día de prueba gratuito activo (24 horas)"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Prueba gratis: {usage.trialHoursRemaining ?? 24}h restantes</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              <span>{usage.trialHoursRemaining ?? 24}h gratis</span>
             </button>
           ) : (
             <button
+              type="button"
               onClick={onOpenPayment}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs transition-all active:scale-95 border border-blue-600"
+              className="py-1 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer transition-colors"
               title="Activar plan escolar mensual por $10.000 COP o canjear código"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Activar Plan ($10.000 COP)</span>
+              Activar plan ($10.000)
             </button>
           )}
 
-          {/* Botón Ver Guía Rápida */}
+          <span className="h-4 w-px bg-slate-200" aria-hidden="true" />
+
+          {/* Botón Ver Guía Rápida (discreto, sin marco) */}
           {onOpenTour && user && (
             <button
+              type="button"
               onClick={onOpenTour}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer border border-slate-200 transition-all"
+              className="text-xs font-semibold text-slate-600 hover:text-blue-600 cursor-pointer transition-colors"
               title="Ver guía rápida de uso"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Guía</span>
+              Guía
             </button>
           )}
 
-          {/* Botón Legal & Soporte */}
+          {/* Botón Legal & Soporte (discreto, sin marco) */}
           {onOpenLegal && (
             <button
+              type="button"
               onClick={() => onOpenLegal('terms')}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer border border-slate-200 transition-all"
+              className="text-xs font-semibold text-slate-600 hover:text-blue-600 cursor-pointer transition-colors"
               title="Términos escolares, privacidad y soporte"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Ayuda</span>
+              Ayuda
             </button>
           )}
 
@@ -225,13 +229,47 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
           <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} onLogout={onLogout} />
         </div>
 
-        {/* Lado Derecho - Móvil (< md): Perfil compacto + Menú Desplegable Hamburguesa */}
-        <div className="flex md:hidden items-center gap-1.5 shrink-0" ref={menuRef}>
+        {/* Lado Derecho - Móvil (< md): Visor discreto sin marco + Menú Desplegable Hamburguesa */}
+        <div className="flex md:hidden items-center gap-3 shrink-0" ref={menuRef}>
+          {/* Visor discreto sin marco de días/horas restantes */}
+          {onOpenPayment && (
+            isSubscriptionActive ? (
+              <button
+                type="button"
+                onClick={onOpenPayment}
+                className="flex items-center gap-1.5 py-1 text-xs font-semibold text-slate-700 hover:text-slate-950 cursor-pointer transition-colors"
+                title="Ver detalles de tu suscripción o renovar"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span>{isAdmin ? '365d' : `${remainingDays}d`}</span>
+              </button>
+            ) : usage.isTrialActive ? (
+              <button
+                type="button"
+                onClick={onOpenPayment}
+                className="flex items-center gap-1.5 py-1 text-xs font-semibold text-slate-700 hover:text-blue-600 cursor-pointer transition-colors"
+                title="Horas restantes de tu día de prueba gratis"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                <span>{usage.trialHoursRemaining ?? 24}h</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenPayment}
+                className="py-1 text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer transition-colors"
+                title="Activar plan escolar"
+              >
+                Activar
+              </button>
+            )
+          )}
+
           {/* Botón Menú Hamburguesa */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 cursor-pointer transition-colors"
+            className="p-2 text-slate-700 hover:text-slate-950 cursor-pointer transition-colors"
             aria-label="Abrir menú de navegación"
             aria-expanded={mobileMenuOpen}
           >
@@ -242,11 +280,68 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
           {mobileMenuOpen && (
             <div className="absolute top-16 right-3 w-[calc(100vw-24px)] max-w-sm bg-white rounded-2xl border border-slate-200 shadow-xl p-4 space-y-3 motion-panel-swap z-50">
               {/* Tarjeta de Usuario / Perfil en el menú */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="pb-3 border-b border-slate-100">
                 <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} onLogout={onLogout} />
               </div>
 
-              <div className="space-y-2">
+              <div className="divide-y divide-slate-100 text-xs">
+                {/* Estado discreto del Plan / Días o Horas restantes sin marco */}
+                {onOpenPayment && (
+                  isSubscriptionActive ? (
+                    <button
+                      type="button"
+                      onClick={handleOpenPaymentClick}
+                      className="w-full flex items-center justify-between py-2.5 text-left text-slate-800 hover:text-blue-600 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                        <div>
+                          <span className="font-bold">
+                            {isAdmin
+                              ? '365 días activos'
+                              : `${remainingDays} ${remainingDays === 1 ? 'día restante' : 'días restantes'}`}
+                          </span>
+                          <span className="block text-[11px] text-slate-400">
+                            Verificar estado o renovar
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </button>
+                  ) : usage.isTrialActive ? (
+                    <button
+                      type="button"
+                      onClick={handleOpenPaymentClick}
+                      className="w-full flex items-center justify-between py-2.5 text-left text-slate-800 hover:text-blue-600 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                        <div>
+                          <span className="font-bold">Prueba gratis: {usage.trialHoursRemaining ?? 24}h restantes</span>
+                          <span className="block text-[11px] text-slate-400">
+                            Activar mes completo ($10.000 COP)
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </button>
+                  ) : showActivatePaymentBtn ? (
+                    <button
+                      type="button"
+                      onClick={handleOpenPaymentClick}
+                      className="w-full flex items-center justify-between py-2.5 text-left text-blue-600 font-bold cursor-pointer transition-colors"
+                    >
+                      <div>
+                        <span>Activar Plan Escolar</span>
+                        <span className="block text-[11px] font-normal text-slate-400">
+                          $10.000 COP / Mes (30 días)
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-blue-500 shrink-0" />
+                    </button>
+                  ) : null
+                )}
+
                 {isAdmin && onOpenAdmin && (
                   <button
                     onClick={handleOpenAdminClick}
@@ -255,24 +350,6 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
                     <div className="flex items-center gap-2">
                       <Shield className="w-4 h-4 text-amber-700" />
                       <span>Panel de Administrador</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-amber-700" />
-                  </button>
-                )}
-
-                {showActivatePaymentBtn && (
-                  <button
-                    onClick={handleOpenPaymentClick}
-                    className="w-full flex items-center justify-between p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 text-left text-xs font-bold text-amber-950 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-700" />
-                      <div>
-                        <span>Activar Plan Escolar</span>
-                        <span className="block text-[10px] font-normal text-slate-500">
-                          $10.000 COP / Mes (30 días de acceso)
-                        </span>
-                      </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-amber-700" />
                   </button>
