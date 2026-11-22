@@ -79,13 +79,13 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* 2. Cuerpo Principal: Foco Central + Selector de Nivel en Línea (Zero-Scroll) */}
       <main className="flex-1 flex flex-col items-center justify-center px-5 sm:px-6 py-8">
-        <div className="max-w-2xl w-full mx-auto text-center space-y-6">
+        <div className="max-w-2xl w-full mx-auto text-center space-y-6 motion-fade-up">
           {/* Selector de Nivel en línea (sin cajas ni píldoras) */}
           <div className="flex items-center justify-center gap-6 sm:gap-8 text-xs sm:text-sm font-bold">
             <button
               type="button"
               onClick={() => setSelectedLevel('primaria')}
-              className={`pb-1.5 cursor-pointer transition-colors border-b-2 ${
+              className={`pb-1.5 cursor-pointer transition-colors duration-200 border-b-2 ${
                 isPrimaria
                   ? 'text-blue-600 border-blue-600'
                   : 'text-slate-400 hover:text-slate-700 border-transparent'
@@ -96,7 +96,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <button
               type="button"
               onClick={() => setSelectedLevel('secundaria')}
-              className={`pb-1.5 cursor-pointer transition-colors border-b-2 ${
+              className={`pb-1.5 cursor-pointer transition-colors duration-200 border-b-2 ${
                 !isPrimaria
                   ? 'text-blue-600 border-blue-600'
                   : 'text-slate-400 hover:text-slate-700 border-transparent'
@@ -106,19 +106,20 @@ export const HomePage: React.FC<HomePageProps> = ({
             </button>
           </div>
 
-          {/* Titular Protagonista */}
-          <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-slate-900 tracking-tight leading-[1.08]">
-            {isPrimaria
-              ? 'Tareas de Primaria explicadas con paciencia y ejemplos fáciles.'
-              : 'Rigor paso a paso para dominar Bachillerato y exámenes.'}
-          </h1>
+          {/* Titular y Subtítulo con transición suave al alternar nivel */}
+          <div key={selectedLevel} className="space-y-4 motion-panel-swap">
+            <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-slate-900 tracking-tight leading-[1.08]">
+              {isPrimaria
+                ? 'Tareas de Primaria explicadas con paciencia y ejemplos fáciles.'
+                : 'Rigor paso a paso para dominar Bachillerato y exámenes.'}
+            </h1>
 
-          {/* Subtítulo Claro y Directo */}
-          <p className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
-            {isPrimaria
-              ? 'Corrige dictados, repasa matemáticas y entiende ciencias naturales con lenguaje cercano para niños. No hacemos la tarea por ti: enseñamos a comprender.'
-              : 'Despeja fórmulas de álgebra, física y química, corrige ensayos y descarga fichas ordenadas en PDF desde texto o fotos del cuaderno.'}
-          </p>
+            <p className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
+              {isPrimaria
+                ? 'Corrige dictados, repasa matemáticas y entiende ciencias naturales con lenguaje cercano para niños. No hacemos la tarea por ti: enseñamos a comprender.'
+                : 'Despeja fórmulas de álgebra, física y química, corrige ensayos y descarga fichas ordenadas en PDF desde texto o fotos del cuaderno.'}
+            </p>
+          </div>
 
           {/* Llamado a la Acción Principal */}
           <div className="pt-2 space-y-3.5">

@@ -322,9 +322,9 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
       {/* 3. Tarjeta explicativa flotante con desplazamiento GPU-acelerado (translate3d) */}
       <div
         style={getPopoverStyle()}
-        className="fixed z-10 bg-white rounded-2xl border border-slate-200/90 shadow-2xl p-5 space-y-4 text-left will-change-transform"
+        className="fixed z-10 bg-white rounded-2xl border border-slate-200/90 shadow-2xl p-5 space-y-4 text-left"
       >
-        <div key={current.step} className="space-y-3 animate-in fade-in slide-in-from-bottom-1 duration-300">
+        <div key={current.step} className="space-y-3 motion-panel-swap">
           <div className="flex items-start justify-between gap-2.5">
             <div className="flex items-center gap-2.5">
               <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${current.accentBg}`}>

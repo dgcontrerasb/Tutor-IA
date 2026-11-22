@@ -257,11 +257,11 @@ export const RecentHomeworksHistory: React.FC<RecentHomeworksHistoryProps> = ({
           ======================================================== */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs p-0 sm:p-4 motion-modal-backdrop"
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
+            className="w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden motion-modal-card"
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}

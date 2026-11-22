@@ -154,9 +154,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs p-3 sm:p-6 flex items-start justify-center animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs p-3 sm:p-6 flex items-start justify-center motion-modal-backdrop"
     >
-      <div className="relative w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-8 text-center my-4 sm:my-8 max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-8 text-center my-4 sm:my-8 max-h-[92vh] overflow-y-auto motion-modal-card">
         {/* Botón Cerrar */}
         <button
           onClick={onClose}

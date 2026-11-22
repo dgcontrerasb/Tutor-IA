@@ -11,6 +11,14 @@
     --text-slate-900: #0F172A;
     --text-slate-600: #475569;
     --border-card: #E2E8F0;
+    --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 180ms;
+    --dur-base: 280ms;
+    --dur-enter: 340ms;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -21,6 +29,15 @@
       radial-gradient(rgba(37, 99, 235, 0.06) 1px, transparent 1px);
     background-size: 24px 24px;
     background-position: 0 0;
+  }
+
+  /* Curva orgánica global para controles interactivos (suave, nunca brusca) */
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    transition-timing-function: var(--ease-smooth);
   }
 
   h1, h2, h3, .font-heading {
@@ -624,6 +641,69 @@
   animation: circle7124 0.5s alternate infinite ease;
   border: solid 5px #000000;
   animation-delay: 0.1s;
+}
+
+/* =========================================================================
+   SISTEMA GLOBAL DE TRANSICIONES PROFESIONALES (dev-quirurgico-motion-opcional)
+   Solo opacity + transform (aceleración GPU), sin saltos ni rebotes bruscos.
+   ========================================================================= */
+
+@keyframes motionFadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes motionPanelSwap {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 5px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes motionBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes motionModalIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.motion-fade-up {
+  animation: motionFadeUp var(--dur-enter) var(--ease-smooth) both;
+}
+
+.motion-panel-swap {
+  animation: motionPanelSwap var(--dur-base) var(--ease-smooth) both;
+}
+
+.motion-modal-backdrop {
+  animation: motionBackdropIn 220ms ease-out both;
+}
+
+.motion-modal-card {
+  animation: motionModalIn 280ms var(--ease-smooth) both;
 }
 
 /* Accesibilidad: respetar prefers-reduced-motion (dev-quirurgico-motion-opcional) */

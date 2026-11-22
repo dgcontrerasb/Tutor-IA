@@ -240,7 +240,7 @@ export const StickyNavbar: React.FC<HeaderProps> = ({
 
           {/* Menú Desplegable Flotante Móvil */}
           {mobileMenuOpen && (
-            <div className="absolute top-16 right-3 w-[calc(100vw-24px)] max-w-sm bg-white rounded-2xl border border-slate-200 shadow-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+            <div className="absolute top-16 right-3 w-[calc(100vw-24px)] max-w-sm bg-white rounded-2xl border border-slate-200 shadow-xl p-4 space-y-3 motion-panel-swap z-50">
               {/* Tarjeta de Usuario / Perfil en el menú */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <AuthBar user={user} loading={authLoading} onRefresh={onRefreshProfile} isSyncing={isSyncing} onLogout={onLogout} />

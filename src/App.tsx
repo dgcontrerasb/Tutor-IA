@@ -678,7 +678,7 @@ export default function App() {
         />
 
         {/* Contenedor Principal: Sidebar Izquierda + Área Central */}
-        <div className={`flex flex-col lg:flex-row gap-5 items-start transition-all ${isExhausted ? 'filter blur-xs pointer-events-none select-none opacity-60' : ''}`}>
+        <div className={`flex flex-col lg:flex-row gap-5 items-start motion-fade-up transition-opacity duration-300 ${isExhausted ? 'filter blur-xs pointer-events-none select-none opacity-60' : ''}`}>
           {/* Panel Lateral Izquierdo de Materias Escolares */}
           <SubjectsSidebar
             selectedSubjectId={selectedSubjectId}
@@ -776,7 +776,7 @@ export default function App() {
                   <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5 space-y-4">
                     {/* Cabecera compacta integrada (sin Banner redundante) */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div key={selectedSubjectId} className="flex items-center gap-2.5 min-w-0 motion-panel-swap">
                         <span
                           className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-base shrink-0 shadow-2xs"
                           style={{ backgroundColor: getSubjectById(selectedSubjectId).color }}
@@ -923,9 +923,11 @@ export default function App() {
               {/* Panel Derecho: Ficha Interactiva de Estudio / Live Canvas (lg:col-span-6, Sticky en escritorio) */}
               <div className="lg:col-span-6 lg:sticky lg:top-20 space-y-4">
                 {isLoading ? (
-                  <LoadingState />
+                  <div className="motion-fade-up">
+                    <LoadingState />
+                  </div>
                 ) : result ? (
-                  <div ref={resultsRef} className="space-y-4">
+                  <div ref={resultsRef} className="space-y-4 motion-fade-up">
                     {result.isSchoolRelated === false ? (
                       <SchoolGuardrailCard
                         rejectionReason={result.rejectionReason}

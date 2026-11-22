@@ -493,9 +493,9 @@ export function DiagnosticModal() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto motion-modal-backdrop"
         >
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-auto max-h-[92vh]">
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col my-auto max-h-[92vh] motion-modal-card">
             {/* Header del Modal */}
             <div className="bg-slate-50 border-b border-slate-200/80 p-4 flex items-center justify-between">
               <div className="flex items-center gap-2.5">

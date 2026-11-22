@@ -193,34 +193,36 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
 
-      {/* Vista de Tarjetas con filtro por pestaña activa */}
-      {(activeTab === 'all' || activeTab === 'ocr') && result.ocrTranscribedText && (
-        <OcrCard transcription={result.ocrTranscribedText} />
-      )}
+      {/* Vista de Tarjetas con filtro por pestaña activa y transición suave */}
+      <div key={activeTab} className="space-y-4 motion-panel-swap">
+        {(activeTab === 'all' || activeTab === 'ocr') && result.ocrTranscribedText && (
+          <OcrCard transcription={result.ocrTranscribedText} />
+        )}
 
-      {(activeTab === 'all' || activeTab === 'stepByStep') && result.stepByStep && (
-        <StepByStepCard data={result.stepByStep} />
-      )}
+        {(activeTab === 'all' || activeTab === 'stepByStep') && result.stepByStep && (
+          <StepByStepCard data={result.stepByStep} />
+        )}
 
-      {(activeTab === 'all' || activeTab === 'topicExplanation') && result.topicExplanation && (
-        <TopicExplanationCard data={result.topicExplanation} />
-      )}
+        {(activeTab === 'all' || activeTab === 'topicExplanation') && result.topicExplanation && (
+          <TopicExplanationCard data={result.topicExplanation} />
+        )}
 
-      {(activeTab === 'all' || activeTab === 'quizGuide') && result.quizGuide && (
-        <QuizGuideCard data={result.quizGuide} />
-      )}
+        {(activeTab === 'all' || activeTab === 'quizGuide') && result.quizGuide && (
+          <QuizGuideCard data={result.quizGuide} />
+        )}
 
-      {(activeTab === 'all' || activeTab === 'correction') && result.correction && (
-        <CorrectionCard data={result.correction} />
-      )}
+        {(activeTab === 'all' || activeTab === 'correction') && result.correction && (
+          <CorrectionCard data={result.correction} />
+        )}
 
-      {(activeTab === 'all' || activeTab === 'summary') && result.summary && (
-        <SummaryCard data={result.summary} />
-      )}
+        {(activeTab === 'all' || activeTab === 'summary') && result.summary && (
+          <SummaryCard data={result.summary} />
+        )}
 
-      {(activeTab === 'all' || activeTab === 'analysis') && result.analysis && (
-        <AnalysisCard data={result.analysis} />
-      )}
+        {(activeTab === 'all' || activeTab === 'analysis') && result.analysis && (
+          <AnalysisCard data={result.analysis} />
+        )}
+      </div>
     </div>
   );
 };
